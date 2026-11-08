@@ -11,3 +11,7 @@ pip install -e ".[dev]"
 pytest
 ruff check .
 ```
+
+## Licença
+
+[MIT](LICENSE) © 2026 Alison Vasconcelos Marques.
