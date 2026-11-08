@@ -265,7 +265,15 @@ class Tabela(QTableWidget):
         cabecalho = self.horizontalHeader()
         cabecalho.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         cabecalho.setHighlightSections(False)
+        # O tema põe 12 px dos lados e 10 px em cima e embaixo de cada célula, e o Qt desloca
+        # as peças postas nas células por esse espaço (sem encolhê-las).
+        self.folga = (12, 10)
         self.cellClicked.connect(lambda linha, _: self.escolhida.emit(linha))
+
+    def celulas_inteiras(self) -> None:
+        """As peças ocupam a célula toda (para pintar a linha inteira, por exemplo)."""
+        self.setStyleSheet("QTableWidget::item { padding: 0; }")
+        self.folga = (0, 0)
 
     def keyPressEvent(self, evento) -> None:  # noqa: N802 (nome do Qt)
         if evento.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and self.currentRow() >= 0:
@@ -286,6 +294,14 @@ class Tabela(QTableWidget):
         mínima delas é aplicada à mão.
         """
         self.resizeRowsToContents()
+        for linha in range(self.rowCount()):
+            alturas = [
+                w.minimumHeight()
+                for coluna in range(self.columnCount())
+                if (w := self.cellWidget(linha, coluna)) is not None
+            ]
+            if alturas and max(alturas) + self.folga[1] > self.rowHeight(linha):
+                self.setRowHeight(linha, max(alturas) + self.folga[1])
         cabecalho = self.horizontalHeader()
         for coluna in range(self.columnCount()):
             larguras = [
@@ -295,10 +311,10 @@ class Tabela(QTableWidget):
             ]
             if not larguras:
                 continue
-            largura = max([*larguras, cabecalho.sectionSizeHint(coluna)])
+            largura = max([max(larguras), cabecalho.sectionSizeHint(coluna) - self.folga[0]])
             if cabecalho.sectionResizeMode(coluna) != QHeaderView.ResizeMode.Stretch:
                 cabecalho.setSectionResizeMode(coluna, QHeaderView.ResizeMode.Fixed)
-                cabecalho.resizeSection(coluna, largura + 8)
+                cabecalho.resizeSection(coluna, largura + self.folga[0])
 
     def dado_da_linha(self, linha: int) -> object:
         item = self.item(linha, 0)
@@ -313,6 +329,18 @@ def etiqueta(rotulo: str, tipo: str = "neutra") -> QLabel:
     return marca
 
 
+def centralizar(widget: QWidget) -> QWidget:
+    """Põe uma peça no centro da célula de tabela, já com o tamanho mínimo calculado."""
+    caixa = QWidget()
+    layout = QHBoxLayout(caixa)
+    layout.setContentsMargins(8, 6, 8, 6)
+    layout.addWidget(widget, 0, Qt.AlignmentFlag.AlignCenter)
+    widget.ensurePolished()
+    caixa.ensurePolished()
+    caixa.setMinimumSize(caixa.sizeHint())
+    return caixa
+
+
 def empilhar(*widgets: QWidget, margem: int = 8) -> QWidget:
     """Junta peças uma embaixo da outra, para pôr numa célula de tabela."""
     caixa = QWidget()
@@ -321,6 +349,8 @@ def empilhar(*widgets: QWidget, margem: int = 8) -> QWidget:
     layout.setSpacing(4)
     layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
     for w in widgets:
+        if isinstance(w, QLabel):
+            w.setWordWrap(False)  # numa célula, o texto fica numa linha só
         layout.addWidget(w, 0, Qt.AlignmentFlag.AlignLeft)
         w.ensurePolished()
     # Polido antes de entrar na tabela, o tamanho já conta com as margens do tema; assim a

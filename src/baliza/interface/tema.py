@@ -78,8 +78,17 @@ QPushButton[papel="nav"]:hover { background: $bg/surface-alt; color: $text/prima
 QPushButton[papel="nav"]:checked { background: $bg/selected; color: $text/primary;
   font-weight: 500; border-left: 3px solid $accent/default; padding-left: 9px; }
 QPushButton[papel="nav"]:focus { border: 2px solid $accent/default; padding: 6px 10px; }
-QCheckBox { spacing: 10px; }
-QCheckBox::indicator { width: 18px; height: 18px; }
+QCheckBox { spacing: 10px; background: transparent; }
+QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid $border/input;
+  border-radius: 4px; background: $bg/surface; }
+QCheckBox::indicator:hover { border-color: $accent/default; }
+QCheckBox::indicator:checked { background: $accent/default; border-color: $accent/default;
+  image: url($marca); }
+QCheckBox:focus { outline: none; }
+QCheckBox::indicator:focus { border: 2px solid $text/primary; width: 14px; height: 14px; }
+QCheckBox::indicator:disabled { background: $bg/surface-alt; border-color: $border/default; }
+QCheckBox::indicator:checked:disabled { background: $text/placeholder;
+  border-color: $text/placeholder; }
 QComboBox, QDateTimeEdit { background: $bg/surface; border: 1px solid $border/input;
   border-radius: 6px; padding: 7px 11px; min-height: 20px; }
 QComboBox:focus, QDateTimeEdit:focus { border: 2px solid $accent/default; padding: 6px 10px; }
@@ -113,6 +122,8 @@ QLabel[etiqueta="neutra"] { background: $bg/surface-alt; color: $text/secondary;
   border: 1px solid $border/default; }
 QLabel[etiqueta="atencao"] { background: $status/warning-bg; color: $status/warning;
   border: 1px solid $status/warning-bg; }
+QLabel[etiqueta="perigo"] { background: $status/danger-bg; color: $status/danger;
+  border: 1px solid $status/danger; }
 QLabel[etiqueta="sucesso"] { background: $status/success-bg; color: $status/success;
   border: 1px solid $status/success-bg; }
 """
@@ -120,8 +131,10 @@ QLabel[etiqueta="sucesso"] { background: $status/success-bg; color: $status/succ
 
 def folha_de_estilo() -> str:
     """Troca cada $token pela cor do tema (os maiores primeiro, para não cortar nomes)."""
-    seta = Path(str(resources.files("baliza.interface").joinpath("seta.svg"))).as_posix()
-    qss = QSS.replace("$fontes", FONTES).replace("$seta", seta)
+    pasta = resources.files("baliza.interface")
+    seta = Path(str(pasta.joinpath("seta.svg"))).as_posix()
+    marca = Path(str(pasta.joinpath("marca.svg"))).as_posix()
+    qss = QSS.replace("$fontes", FONTES).replace("$seta", seta).replace("$marca", marca)
     for nome in sorted(CORES, key=len, reverse=True):
         qss = qss.replace(f"${nome}", CORES[nome])
     return qss

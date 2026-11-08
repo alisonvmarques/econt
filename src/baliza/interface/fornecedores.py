@@ -49,6 +49,7 @@ from baliza.dados.fornecedores import (
 from baliza.dados.lista_bancos import listar_bancos
 from baliza.dominio.documentos import TIPOS_DE_PESSOA, formatar_documento
 from baliza.dominio.pix import TIPOS_DE_CHAVE
+from baliza.interface.cadastros import PainelCadastros
 from baliza.interface.componentes import (
     Abas,
     Campo,
@@ -561,17 +562,10 @@ class FichaFornecedor(QWidget):
             cabecalho.setSectionResizeMode(larga, QHeaderView.ResizeMode.Stretch)
         self.abas.addTab(self.aba_contas, "Contas e Pix")
 
-        self.aba_cadastros = QWidget()
-        coluna = QVBoxLayout(self.aba_cadastros)
-        coluna.setContentsMargins(0, 16, 0, 0)
-        self.cadastros = texto(
-            "Aqui você vai marcar em quais contas da entidade cada conta e chave Pix deste "
-            "fornecedor está cadastrada. As marcações chegam na versão 0.5.",
-            "apoio",
-        )
-        coluna.addWidget(self.cadastros)
-        coluna.addStretch()
+        self.aba_cadastros = PainelCadastros(base)
         self.abas.addTab(self.aba_cadastros, "Cadastros")
+        # Com a primeira marcação, o fornecedor passa a ter histórico e só pode ser inativado.
+        self.aba_cadastros.alterado.connect(self._atualizar_excluir)
 
         self.voltar.clicked.connect(self.voltar_lista.emit)
         self.editar.clicked.connect(lambda: self.editar_pedido.emit(self.fornecedor))
@@ -585,6 +579,9 @@ class FichaFornecedor(QWidget):
         self.tabela_chaves.escolhida.connect(
             lambda linha: self.abrir_chave(self.tabela_chaves.dado_da_linha(linha))
         )
+
+    def _atualizar_excluir(self) -> None:
+        self.excluir.setVisible(not tem_historico(self.base.conexao, self.fornecedor.id))
 
     @staticmethod
     def _cabecalho_secao(titulo: str, acao: QPushButton) -> QHBoxLayout:
@@ -602,9 +599,10 @@ class FichaFornecedor(QWidget):
         self.ativar.setText("Inativar" if f.ativo else "Reativar")
         self.ativar.setProperty("tipo", "perigo" if f.ativo else "secundario")
         self.ativar.style().polish(self.ativar)
-        self.excluir.setVisible(not tem_historico(self.base.conexao, f.id))
+        self._atualizar_excluir()
         self._mostrar_dados(f)
         self._mostrar_contas_e_chaves(f)
+        self.aba_cadastros.mostrar(f)
 
     def _mostrar_dados(self, f: Fornecedor) -> None:
         while self.grade_dados.count():
