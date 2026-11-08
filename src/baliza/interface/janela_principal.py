@@ -7,6 +7,7 @@ from pathlib import Path
 from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget
 
 from baliza.dados.banco import BaseDeDados
+from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
 from baliza.dados.local import caminho_padrao
 from baliza.interface.acesso import (
     TelaChaveRecuperacao,
@@ -15,6 +16,7 @@ from baliza.interface.acesso import (
     TelaNovaSenha,
 )
 from baliza.interface.area_principal import AreaPrincipal
+from baliza.interface.entidade import TelaDadosEntidade
 from baliza.interface.tema import folha_de_estilo
 
 TITULO = "Baliza"
@@ -64,14 +66,23 @@ class JanelaPrincipal(QMainWindow):
     def _criar_dados(self, senha: str) -> None:
         self.caminho.parent.mkdir(parents=True, exist_ok=True)
         self.base, chave = BaseDeDados.criar(self.caminho, senha)
-        self._mostrar(TelaChaveRecuperacao(chave)).continuar.connect(self._mostrar_area_principal)
+        self._mostrar(TelaChaveRecuperacao(chave)).continuar.connect(self._seguir)
 
     def _acesso_liberado(self, base: BaseDeDados) -> None:
         self.base = base
-        self._mostrar_area_principal()
+        self._seguir()
 
-    def _mostrar_area_principal(self) -> None:
-        self.area = self._mostrar(AreaPrincipal())
+    def _seguir(self) -> None:
+        """Sem entidade cadastrada, o resto do sistema só abre depois dela (RF15)."""
+        if obter_entidade(self.base.conexao) is None:
+            self._mostrar(TelaDadosEntidade()).salva.connect(self._salvar_entidade)
+        else:
+            self.area = self._mostrar(AreaPrincipal(self.base))
+
+    def _salvar_entidade(self, entidade: Entidade) -> None:
+        salvar_entidade(self.base.conexao, entidade)
+        self.base.salvar()
+        self._seguir()
 
     def closeEvent(self, evento) -> None:  # noqa: N802 (nome do Qt)
         if self.base is not None:

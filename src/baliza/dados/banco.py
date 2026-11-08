@@ -21,6 +21,17 @@ MIGRACOES: list[str] = [
         origem TEXT NOT NULL CHECK (origem IN ('oficial', 'manual'))
     );
     """,
+    # 2 · dados da entidade: uma única entidade (RN09), garantida pelo id fixo
+    """
+    CREATE TABLE entidade (
+        id           INTEGER PRIMARY KEY CHECK (id = 1),
+        razao_social TEXT NOT NULL,
+        cnpj         TEXT NOT NULL,
+        logo         BLOB,
+        criado_em    TEXT NOT NULL,
+        alterado_em  TEXT NOT NULL
+    );
+    """,
 ]
 
 

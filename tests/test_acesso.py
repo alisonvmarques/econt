@@ -7,6 +7,7 @@ from baliza.interface.acesso import (
     TelaEntrada,
     TelaNovaSenha,
 )
+from baliza.interface.entidade import TelaDadosEntidade
 from baliza.interface.janela_principal import JanelaPrincipal
 
 SENHA = "fundo2026saude"
@@ -61,7 +62,7 @@ def test_chave_so_segue_depois_de_confirmar_que_guardou(aplicacao, tmp_path):
     tela.guardei.setChecked(True)
     assert tela.botao_continuar.isEnabled()
     tela.botao_continuar.click()
-    assert not isinstance(janela.tela_atual(), TelaChaveRecuperacao)
+    assert isinstance(janela.tela_atual(), TelaDadosEntidade)
     janela.close()
 
 

@@ -15,7 +15,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from baliza.dados.banco import BaseDeDados
+from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
 from baliza.interface.componentes import texto
+from baliza.interface.entidade import PaginaEntidade, pixmap_do_logo
 from baliza.interface.icones import icone
 from baliza.interface.tema import CORES
 
@@ -44,7 +47,7 @@ DESCRICOES = {
     "inicio": "O resumo do que está cadastrado chega na versão 0.7.",
     "consulta": "A Consulta de fornecedores chega na versão 0.6.",
     "fornecedores": "O cadastro de fornecedores chega na versão 0.4.",
-    "entidade": "Os dados e as contas da entidade chegam nas versões 0.2 e 0.3.",
+    "entidade": "As contas da entidade chegam na versão 0.3.",
     "configuracoes": "As configurações chegam ao longo das próximas versões.",
 }
 
@@ -94,6 +97,15 @@ class Navegacao(QFrame):
             layout.addWidget(b)
         layout.addStretch()
 
+    def mostrar_entidade(self, entidade: Entidade | None) -> None:
+        """RF16: logo e nome da entidade no topo da navegação. Sem logo, o espaço fica vazio."""
+        if entidade is None:
+            return
+        nome = entidade.razao_social
+        self.nome_entidade.setText(nome if len(nome) <= 24 else nome[:23] + "…")
+        self.nome_entidade.setToolTip(nome)
+        self.logo.setPixmap(pixmap_do_logo(entidade.logo, 32))
+
     def eventFilter(self, objeto, evento) -> bool:  # noqa: N802 (nome do Qt)
         if evento.type() == evento.Type.KeyPress and evento.key() in (
             Qt.Key.Key_Up,
@@ -110,8 +122,9 @@ class Navegacao(QFrame):
 
 
 class AreaPrincipal(QWidget):
-    def __init__(self) -> None:
+    def __init__(self, base: BaseDeDados | None = None) -> None:
         super().__init__()
+        self.base = base
         self.setObjectName("fundo")
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -128,10 +141,21 @@ class AreaPrincipal(QWidget):
             self.navegacao.botoes[chave].clicked.connect(lambda _=False, c=chave: self.ir_para(c))
             atalho = QShortcut(QKeySequence(f"Ctrl+{numero}"), self)
             atalho.activated.connect(lambda c=chave: self.ir_para(c))
+        if base is not None:
+            self.navegacao.mostrar_entidade(obter_entidade(base.conexao))
         self.ir_para("inicio")
 
     def criar_pagina(self, chave: str, rotulo: str) -> QWidget:
+        if chave == "entidade" and self.base is not None:
+            pagina = PaginaEntidade(obter_entidade(self.base.conexao))
+            pagina.salva.connect(self._salvar_entidade)
+            return pagina
         return PaginaEmConstrucao(rotulo, DESCRICOES[chave])
+
+    def _salvar_entidade(self, entidade: Entidade) -> None:
+        salvar_entidade(self.base.conexao, entidade)
+        self.base.salvar()
+        self.navegacao.mostrar_entidade(entidade)
 
     def ir_para(self, chave: str) -> None:
         self.paginas.setCurrentWidget(self.indice[chave])
