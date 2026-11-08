@@ -19,6 +19,7 @@ from baliza.dados.banco import BaseDeDados
 from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
 from baliza.interface.componentes import texto
 from baliza.interface.configuracoes import PaginaConfiguracoes
+from baliza.interface.contas import PaginaContas
 from baliza.interface.entidade import PaginaEntidade, pixmap_do_logo
 from baliza.interface.icones import icone
 from baliza.interface.tema import CORES
@@ -48,7 +49,7 @@ DESCRICOES = {
     "inicio": "O resumo do que está cadastrado chega na versão 0.7.",
     "consulta": "A Consulta de fornecedores chega na versão 0.6.",
     "fornecedores": "O cadastro de fornecedores chega na versão 0.4.",
-    "entidade": "As contas da entidade chegam na versão 0.3.",
+    "entidade": "Os dados e as contas da entidade.",
     "configuracoes": "Bancos e, nas próximas versões, impressão, backup e senha.",
 }
 
@@ -148,7 +149,7 @@ class AreaPrincipal(QWidget):
 
     def criar_pagina(self, chave: str, rotulo: str) -> QWidget:
         if chave == "entidade" and self.base is not None:
-            pagina = PaginaEntidade(obter_entidade(self.base.conexao))
+            pagina = PaginaEntidade(obter_entidade(self.base.conexao), PaginaContas(self.base))
             pagina.salva.connect(self._salvar_entidade)
             return pagina
         if chave == "configuracoes" and self.base is not None:

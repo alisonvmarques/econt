@@ -12,6 +12,7 @@ from baliza.dados.entidade import Entidade, problemas_da_entidade
 from baliza.dominio.documentos import formatar_cnpj
 from baliza.interface.acesso import TelaCentral
 from baliza.interface.componentes import (
+    Abas,
     Campo,
     aviso,
     botao,
@@ -174,19 +175,27 @@ class TelaDadosEntidade(TelaCentral):
 
 
 class PaginaEntidade(QWidget):
-    """T18 · Área Entidade: editar os dados e o logo."""
+    """Área Entidade: aba Dados (T18) e, quando houver base aberta, aba Contas (T19 a T21)."""
 
     salva = Signal(object)
 
-    def __init__(self, entidade: Entidade | None) -> None:
+    def __init__(self, entidade: Entidade | None, contas: QWidget | None = None) -> None:
         super().__init__()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 32, 40, 32)
-        layout.setSpacing(20)
+        layout.setSpacing(16)
         layout.addWidget(texto("Entidade", "titulo"))
+        self.abas = Abas()
+        layout.addWidget(self.abas, 1)
+
+        dados = QWidget()
+        coluna = QVBoxLayout(dados)
+        coluna.setContentsMargins(0, 20, 0, 0)
+        coluna.setSpacing(20)
         self.retorno = aviso("", "sucesso")
         self.retorno.setVisible(False)
-        layout.addWidget(self.retorno)
+        self.retorno.setMaximumWidth(720)
+        coluna.addWidget(self.retorno)
         quadro = cartao()
         quadro.setMaximumWidth(720)
         interno = QVBoxLayout(quadro)
@@ -194,15 +203,19 @@ class PaginaEntidade(QWidget):
         self.formulario = FormularioEntidade(entidade)
         interno.addWidget(self.formulario)
         interno.addWidget(texto("O Baliza cadastra uma única entidade.", "ajuda"))
-        layout.addWidget(quadro)
+        coluna.addWidget(quadro)
         self.salvar = botao("Salvar", "principal")
         acoes = linha_de_acoes(self.salvar)
         acoes.setContentsMargins(0, 0, 0, 0)
         largura = QWidget()
         largura.setMaximumWidth(720)
         largura.setLayout(acoes)
-        layout.addWidget(largura)
-        layout.addStretch()
+        coluna.addWidget(largura)
+        coluna.addStretch()
+        self.abas.addTab(dados, "Dados")
+        self.contas = contas
+        if contas is not None:
+            self.abas.addTab(contas, "Contas")
         self.salvar.clicked.connect(self._salvar)
 
     def _salvar(self) -> None:

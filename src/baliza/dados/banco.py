@@ -39,6 +39,32 @@ MIGRACOES: list[str] = [
         valor TEXT NOT NULL
     );
     """,
+    # 4 · contas da entidade (RF17) e pedidos de alteração de limite (RF18, RN06, RN07, RN11).
+    # Os limites são da conta da entidade, nunca do fornecedor. Valores em centavos.
+    """
+    CREATE TABLE conta_entidade (
+        id               INTEGER PRIMARY KEY,
+        descricao        TEXT NOT NULL,
+        banco            TEXT NOT NULL REFERENCES banco (codigo),
+        agencia          TEXT NOT NULL,
+        conta            TEXT NOT NULL,
+        limite_pix       INTEGER NOT NULL,
+        limite_transacao INTEGER NOT NULL,
+        ativa            INTEGER NOT NULL DEFAULT 1,
+        criado_em        TEXT NOT NULL,
+        alterado_em      TEXT NOT NULL,
+        UNIQUE (banco, agencia, conta)
+    );
+    CREATE TABLE pedido_limite (
+        id        INTEGER PRIMARY KEY,
+        conta_id  INTEGER NOT NULL REFERENCES conta_entidade (id),
+        tipo      TEXT NOT NULL CHECK (tipo IN ('pix', 'transacao')),
+        valor     INTEGER NOT NULL CHECK (valor > 0),
+        pedido_em TEXT NOT NULL,
+        criado_em TEXT NOT NULL
+    );
+    CREATE INDEX pedido_limite_conta ON pedido_limite (conta_id, tipo, pedido_em);
+    """,
 ]
 
 
