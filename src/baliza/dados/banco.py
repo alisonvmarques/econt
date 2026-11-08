@@ -32,6 +32,13 @@ MIGRACOES: list[str] = [
         alterado_em  TEXT NOT NULL
     );
     """,
+    # 3 · configurações do sistema (chave/valor)
+    """
+    CREATE TABLE configuracao (
+        chave TEXT PRIMARY KEY,
+        valor TEXT NOT NULL
+    );
+    """,
 ]
 
 
@@ -101,3 +108,17 @@ class BaseDeDados:
     def fechar(self) -> None:
         self.salvar()
         self.conexao.close()
+
+    def configuracao(self, chave: str, padrao: str | None = None) -> str | None:
+        linha = self.conexao.execute(
+            "SELECT valor FROM configuracao WHERE chave = ?", (chave,)
+        ).fetchone()
+        return linha[0] if linha else padrao
+
+    def definir_configuracao(self, chave: str, valor: str) -> None:
+        with self.conexao:
+            self.conexao.execute(
+                "INSERT INTO configuracao (chave, valor) VALUES (?, ?) "
+                "ON CONFLICT (chave) DO UPDATE SET valor = excluded.valor",
+                (chave, valor),
+            )

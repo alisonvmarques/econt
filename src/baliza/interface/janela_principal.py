@@ -20,6 +20,7 @@ from baliza.interface.entidade import TelaDadosEntidade
 from baliza.interface.tema import folha_de_estilo
 
 TITULO = "Baliza"
+CHAVE_GUARDADA = "chave_de_recuperacao_guardada"
 LARGURA_INICIAL, ALTURA_INICIAL = 1280, 800
 LARGURA_MINIMA, ALTURA_MINIMA = 1024, 640
 
@@ -66,14 +67,29 @@ class JanelaPrincipal(QMainWindow):
     def _criar_dados(self, senha: str) -> None:
         self.caminho.parent.mkdir(parents=True, exist_ok=True)
         self.base, chave = BaseDeDados.criar(self.caminho, senha)
-        self._mostrar(TelaChaveRecuperacao(chave)).continuar.connect(self._seguir)
+        self._mostrar_chave(chave)
+
+    def _mostrar_chave(self, chave: str) -> None:
+        self._mostrar(TelaChaveRecuperacao(chave)).continuar.connect(self._chave_guardada)
+
+    def _chave_guardada(self) -> None:
+        self.base.definir_configuracao(CHAVE_GUARDADA, "sim")
+        self.base.salvar()
+        self._seguir()
 
     def _acesso_liberado(self, base: BaseDeDados) -> None:
         self.base = base
         self._seguir()
 
     def _seguir(self) -> None:
-        """Sem entidade cadastrada, o resto do sistema só abre depois dela (RF15)."""
+        """Ordem do primeiro uso: chave de recuperação guardada (RF20), depois a entidade (RF15).
+
+        Se o sistema foi fechado antes da confirmação de que a chave foi guardada, a chave
+        mostrada pode ter se perdido: gera uma nova (a anterior deixa de valer) e mostra de novo.
+        """
+        if self.base.configuracao(CHAVE_GUARDADA) != "sim":
+            self._mostrar_chave(self.base.cofre.gerar_nova_chave())
+            return
         if obter_entidade(self.base.conexao) is None:
             self._mostrar(TelaDadosEntidade()).salva.connect(self._salvar_entidade)
         else:

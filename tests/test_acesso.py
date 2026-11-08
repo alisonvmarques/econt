@@ -116,3 +116,31 @@ def test_esqueci_a_senha_com_chave_certa_e_errada(aplicacao, tmp_path):
 
     aberta = BaseDeDados.abrir(caminho, senha="nova2026senha")
     assert aberta.conexao.execute("SELECT nome FROM banco WHERE codigo='999'").fetchone()
+
+
+def test_chave_nao_confirmada_e_trocada_e_mostrada_de_novo(aplicacao, tmp_path):
+    """Fechou o sistema na tela da chave sem confirmar: na próxima entrada, uma chave nova."""
+    caminho = tmp_path / "dados.baliza"
+    janela = JanelaPrincipal(caminho)
+    chave_perdida = _criar_pela_tela(janela)
+    janela.close()
+
+    janela = JanelaPrincipal(caminho)
+    entrada = janela.tela_atual()
+    entrada.senha.definir(SENHA)
+    entrada.entrar.click()
+    tela = janela.tela_atual()
+    assert isinstance(tela, TelaChaveRecuperacao)
+    assert tela.chave != chave_perdida
+    tela.guardei.setChecked(True)
+    tela.botao_continuar.click()
+    assert isinstance(janela.tela_atual(), TelaDadosEntidade)
+    janela.close()
+
+    BaseDeDados.abrir(caminho, chave=tela.chave)  # a nova chave abre os dados
+    janela = JanelaPrincipal(caminho)
+    entrada = janela.tela_atual()
+    entrada.senha.definir(SENHA)
+    entrada.entrar.click()
+    assert isinstance(janela.tela_atual(), TelaDadosEntidade)  # não pede a chave de novo
+    janela.close()
