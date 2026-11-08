@@ -1,0 +1,145 @@
+"""Área principal: navegação lateral (T06) e as áreas do sistema."""
+
+from __future__ import annotations
+
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
+from baliza.interface.componentes import texto
+from baliza.interface.icones import icone
+from baliza.interface.tema import CORES
+
+AREAS = [
+    ("inicio", "Início"),
+    ("consulta", "Consulta"),
+    ("fornecedores", "Fornecedores"),
+    ("entidade", "Entidade"),
+    ("configuracoes", "Configurações"),
+]
+LARGURA_NAVEGACAO = 232
+
+
+class PaginaEmConstrucao(QWidget):
+    def __init__(self, titulo: str, descricao: str) -> None:
+        super().__init__()
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(40, 32, 40, 32)
+        layout.setSpacing(16)
+        layout.addWidget(texto(titulo, "titulo"))
+        layout.addWidget(texto(descricao, "apoio"))
+        layout.addStretch()
+
+
+DESCRICOES = {
+    "inicio": "O resumo do que está cadastrado chega na versão 0.7.",
+    "consulta": "A Consulta de fornecedores chega na versão 0.6.",
+    "fornecedores": "O cadastro de fornecedores chega na versão 0.4.",
+    "entidade": "Os dados e as contas da entidade chegam nas versões 0.2 e 0.3.",
+    "configuracoes": "As configurações chegam ao longo das próximas versões.",
+}
+
+
+class Navegacao(QFrame):
+    """Barra lateral. Setas para cima e para baixo trocam de área quando ela tem o foco."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.setObjectName("navegacao")
+        self.setFixedWidth(LARGURA_NAVEGACAO)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 20, 12, 20)
+        layout.setSpacing(4)
+
+        cabecalho = QHBoxLayout()
+        cabecalho.setContentsMargins(8, 4, 0, 20)
+        cabecalho.setSpacing(12)
+        self.logo = QLabel()
+        self.logo.setFixedSize(32, 32)
+        self.logo.setStyleSheet(f"background: {CORES['accent/subtle']}; border-radius: 6px;")
+        nomes = QVBoxLayout()
+        nomes.setSpacing(0)
+        self.nome_entidade = texto("Baliza")
+        self.nome_entidade.setStyleSheet("font-weight: 500;")
+        nomes.addWidget(self.nome_entidade)
+        nomes.addWidget(texto("Baliza", "ajuda"))
+        cabecalho.addWidget(self.logo)
+        cabecalho.addLayout(nomes, 1)
+        layout.addLayout(cabecalho)
+
+        self.grupo = QButtonGroup(self)
+        self.grupo.setExclusive(True)
+        self.botoes: dict[str, QPushButton] = {}
+        for numero, (chave, rotulo) in enumerate(AREAS, start=1):
+            b = QPushButton(rotulo)
+            b.setProperty("papel", "nav")
+            b.setCheckable(True)
+            b.setIcon(icone(chave, CORES["text/secondary"]))
+            b.setIconSize(QSize(16, 16))
+            b.setCursor(Qt.CursorShape.PointingHandCursor)
+            b.setToolTip(f"{rotulo} (Ctrl+{numero})")
+            b.setAccessibleName(rotulo)
+            b.installEventFilter(self)
+            self.grupo.addButton(b)
+            self.botoes[chave] = b
+            layout.addWidget(b)
+        layout.addStretch()
+
+    def eventFilter(self, objeto, evento) -> bool:  # noqa: N802 (nome do Qt)
+        if evento.type() == evento.Type.KeyPress and evento.key() in (
+            Qt.Key.Key_Up,
+            Qt.Key.Key_Down,
+        ):
+            botoes = list(self.botoes.values())
+            atual = botoes.index(objeto)
+            passo = 1 if evento.key() == Qt.Key.Key_Down else -1
+            proximo = botoes[(atual + passo) % len(botoes)]
+            proximo.setFocus()
+            proximo.click()
+            return True
+        return super().eventFilter(objeto, evento)
+
+
+class AreaPrincipal(QWidget):
+    def __init__(self) -> None:
+        super().__init__()
+        self.setObjectName("fundo")
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        self.navegacao = Navegacao()
+        self.paginas = QStackedWidget()
+        layout.addWidget(self.navegacao)
+        layout.addWidget(self.paginas, 1)
+        self.indice: dict[str, QWidget] = {}
+        for numero, (chave, rotulo) in enumerate(AREAS, start=1):
+            pagina = self.criar_pagina(chave, rotulo)
+            self.indice[chave] = pagina
+            self.paginas.addWidget(pagina)
+            self.navegacao.botoes[chave].clicked.connect(lambda _=False, c=chave: self.ir_para(c))
+            atalho = QShortcut(QKeySequence(f"Ctrl+{numero}"), self)
+            atalho.activated.connect(lambda c=chave: self.ir_para(c))
+        self.ir_para("inicio")
+
+    def criar_pagina(self, chave: str, rotulo: str) -> QWidget:
+        return PaginaEmConstrucao(rotulo, DESCRICOES[chave])
+
+    def ir_para(self, chave: str) -> None:
+        self.paginas.setCurrentWidget(self.indice[chave])
+        self.navegacao.botoes[chave].setChecked(True)
+        for nome, b in self.navegacao.botoes.items():
+            cor = CORES["accent/default"] if nome == chave else CORES["text/secondary"]
+            b.setIcon(icone(nome, cor))
+
+    def area_atual(self) -> str:
+        atual = self.paginas.currentWidget()
+        return next(c for c, p in self.indice.items() if p is atual)

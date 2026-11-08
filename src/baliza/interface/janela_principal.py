@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtWidgets import QMainWindow, QStackedWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget
 
 from baliza.dados.banco import BaseDeDados
 from baliza.dados.local import caminho_padrao
@@ -14,7 +14,7 @@ from baliza.interface.acesso import (
     TelaEntrada,
     TelaNovaSenha,
 )
-from baliza.interface.componentes import texto
+from baliza.interface.area_principal import AreaPrincipal
 from baliza.interface.tema import folha_de_estilo
 
 TITULO = "Baliza"
@@ -71,13 +71,7 @@ class JanelaPrincipal(QMainWindow):
         self._mostrar_area_principal()
 
     def _mostrar_area_principal(self) -> None:
-        area = QWidget()
-        area.setObjectName("fundo")
-        layout = QVBoxLayout(area)
-        layout.setContentsMargins(40, 32, 40, 32)
-        layout.addWidget(texto("Início", "titulo"))
-        layout.addStretch()
-        self._mostrar(area)
+        self.area = self._mostrar(AreaPrincipal())
 
     def closeEvent(self, evento) -> None:  # noqa: N802 (nome do Qt)
         if self.base is not None:
