@@ -5,7 +5,7 @@ import baliza
 
 
 def test_versao_definida():
-    assert baliza.__version__ == "0.2.0"
+    assert baliza.__version__ == "0.3.0"
 
 
 def test_regras_e_dados_nao_dependem_da_interface():
