@@ -30,6 +30,9 @@ dev = [
     "ruff>=0.6",
 ]
 
+[project.gui-scripts]
+baliza = "baliza.app:main"
+
 [project.urls]
 "Repositório" = "https://github.com/alisonvmarques/baliza"
 
