@@ -38,9 +38,12 @@ class BaseDeDados:
     @classmethod
     def criar(cls, caminho: str | os.PathLike, senha: str) -> tuple[BaseDeDados, str]:
         """Cria a base num arquivo novo. Devolve a base e a chave de recuperação."""
+        from baliza.dados.lista_bancos import carregar_bancos_oficiais
+
         cofre, chave = Cofre.criar(caminho, senha)
         base = cls(cofre, sqlite3.connect(":memory:"))
         base.migrar()
+        carregar_bancos_oficiais(base.conexao)
         base.salvar()
         return base, chave
 

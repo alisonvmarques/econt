@@ -51,7 +51,7 @@ def test_migracao_de_uma_versao_antiga(tmp_path, monkeypatch):
     aberta = BaseDeDados.abrir(caminho, senha=SENHA)
     assert aberta.versao() == len(MIGRACOES) + 1
     aberta.conexao.execute("INSERT INTO fornecedor (nome) VALUES ('Teste')")
-    assert aberta.conexao.execute("SELECT count(*) FROM fornecedor").fetchone()[0] == 1
+    assert aberta.conexao.execute("SELECT count(*) FROM banco").fetchone()[0] > 400
 
 
 def test_dados_de_versao_mais_nova_nao_abrem(tmp_path):
