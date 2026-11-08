@@ -46,11 +46,11 @@ def test_migracao_de_uma_versao_antiga(tmp_path, monkeypatch):
     base, _ = BaseDeDados.criar(caminho, SENHA)
     base.fechar()
 
-    nova = "CREATE TABLE fornecedor (id INTEGER PRIMARY KEY, nome TEXT NOT NULL);"
+    nova = "CREATE TABLE exemplo_futuro (id INTEGER PRIMARY KEY, nome TEXT NOT NULL);"
     monkeypatch.setattr("baliza.dados.banco.MIGRACOES", [*MIGRACOES, nova])
     aberta = BaseDeDados.abrir(caminho, senha=SENHA)
     assert aberta.versao() == len(MIGRACOES) + 1
-    aberta.conexao.execute("INSERT INTO fornecedor (nome) VALUES ('Teste')")
+    aberta.conexao.execute("INSERT INTO exemplo_futuro (nome) VALUES ('Teste')")
     assert aberta.conexao.execute("SELECT count(*) FROM banco").fetchone()[0] > 400
 
 

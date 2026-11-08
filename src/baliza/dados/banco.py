@@ -65,6 +65,57 @@ MIGRACOES: list[str] = [
     );
     CREATE INDEX pedido_limite_conta ON pedido_limite (conta_id, tipo, pedido_em);
     """,
+    # 5 · fornecedores (RF07, RF08, RN03), suas contas (RF09, RN10) e chaves Pix (RF10, RN02),
+    # e as marcações de onde cada conta e chave está cadastrada (RF11, preenchidas a partir da
+    # v0.5). Uma marcação é o histórico que impede excluir (RN05).
+    """
+    CREATE TABLE fornecedor (
+        id            INTEGER PRIMARY KEY,
+        tipo          TEXT NOT NULL CHECK (tipo IN ('pj', 'pf')),
+        documento     TEXT NOT NULL UNIQUE,
+        razao_social  TEXT NOT NULL,
+        nome_fantasia TEXT NOT NULL DEFAULT '',
+        telefone      TEXT NOT NULL DEFAULT '',
+        email         TEXT NOT NULL DEFAULT '',
+        endereco      TEXT NOT NULL DEFAULT '',
+        observacoes   TEXT NOT NULL DEFAULT '',
+        ativo         INTEGER NOT NULL DEFAULT 1,
+        criado_em     TEXT NOT NULL,
+        alterado_em   TEXT NOT NULL
+    );
+    CREATE TABLE conta_fornecedor (
+        id            INTEGER PRIMARY KEY,
+        fornecedor_id INTEGER NOT NULL REFERENCES fornecedor (id),
+        banco         TEXT NOT NULL REFERENCES banco (codigo),
+        agencia       TEXT NOT NULL,
+        conta         TEXT NOT NULL,
+        tipo          TEXT NOT NULL CHECK (tipo IN ('corrente', 'poupanca', 'pagamento')),
+        ativa         INTEGER NOT NULL DEFAULT 1,
+        criado_em     TEXT NOT NULL,
+        alterado_em   TEXT NOT NULL,
+        UNIQUE (fornecedor_id, banco, agencia, conta)
+    );
+    CREATE TABLE chave_pix (
+        id            INTEGER PRIMARY KEY,
+        fornecedor_id INTEGER NOT NULL REFERENCES fornecedor (id),
+        tipo          TEXT NOT NULL
+                      CHECK (tipo IN ('cnpj', 'cpf', 'email', 'telefone', 'aleatoria')),
+        chave         TEXT NOT NULL,
+        ativa         INTEGER NOT NULL DEFAULT 1,
+        criado_em     TEXT NOT NULL,
+        alterado_em   TEXT NOT NULL,
+        UNIQUE (fornecedor_id, tipo, chave)
+    );
+    CREATE TABLE marcacao (
+        id                  INTEGER PRIMARY KEY,
+        conta_entidade_id   INTEGER NOT NULL REFERENCES conta_entidade (id),
+        conta_fornecedor_id INTEGER REFERENCES conta_fornecedor (id),
+        chave_pix_id        INTEGER REFERENCES chave_pix (id),
+        criado_em           TEXT NOT NULL,
+        CHECK ((conta_fornecedor_id IS NULL) <> (chave_pix_id IS NULL)),
+        UNIQUE (conta_entidade_id, conta_fornecedor_id, chave_pix_id)
+    );
+    """,
 ]
 
 
