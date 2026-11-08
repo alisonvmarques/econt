@@ -53,3 +53,30 @@ def formatar_cpf(cpf: str) -> str:
     if len(c) != 11:
         return cpf
     return f"{c[:3]}.{c[3:6]}.{c[6:9]}-{c[9:]}"
+
+
+TIPOS_DE_PESSOA = {"pj": "Pessoa jurídica", "pf": "Pessoa física"}
+NOME_DO_DOCUMENTO = {"pj": "CNPJ", "pf": "CPF"}
+
+
+def problema_do_documento(tipo: str, documento: str) -> str | None:
+    """Mensagem clara do que está errado no CPF ou CNPJ, ou None quando está certo (RN01)."""
+    nome = NOME_DO_DOCUMENTO[tipo]
+    c = somente_caracteres(documento)
+    if not c:
+        return f"Informe o {nome}."
+    if tipo == "pf":
+        if not c.isdigit():
+            return "O CPF tem só números."
+        if len(c) != 11:
+            return f"O CPF tem 11 números; este tem {len(c)}."
+        return None if cpf_valido(c) else "CPF inválido: confira os dois últimos dígitos."
+    if len(c) != 14:
+        return f"O CNPJ tem 14 caracteres; este tem {len(c)}."
+    if not c[12:].isdigit():
+        return "Os dois últimos caracteres do CNPJ são números."
+    return None if cnpj_valido(c) else "CNPJ inválido: confira os dois últimos dígitos."
+
+
+def formatar_documento(tipo: str, documento: str) -> str:
+    return formatar_cpf(documento) if tipo == "pf" else formatar_cnpj(documento)
