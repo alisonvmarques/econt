@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtWidgets import QMainWindow, QStackedWidget, QWidget
+from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 
 from baliza.dados.banco import BaseDeDados
 from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
@@ -33,7 +33,9 @@ class JanelaPrincipal(QMainWindow):
         self.setWindowTitle(TITULO)
         self.resize(LARGURA_INICIAL, ALTURA_INICIAL)
         self.setMinimumSize(LARGURA_MINIMA, ALTURA_MINIMA)
-        self.setStyleSheet(folha_de_estilo())
+        # No nível da aplicação, o tema vale também para diálogos e peças criadas antes de
+        # entrar na janela.
+        QApplication.instance().setStyleSheet(folha_de_estilo())
         self.pilha = QStackedWidget()
         self.setCentralWidget(self.pilha)
         if self.caminho.exists():

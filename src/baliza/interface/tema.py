@@ -1,5 +1,8 @@
 """Tema Conforto: cores e estilos do Baliza, com os mesmos nomes do Figma."""
 
+from importlib import resources
+from pathlib import Path
+
 CORES = {
     "bg/window": "#E9EAE6",
     "bg/sidebar": "#E1E3DE",
@@ -77,12 +80,48 @@ QPushButton[papel="nav"]:checked { background: $bg/selected; color: $text/primar
 QPushButton[papel="nav"]:focus { border: 2px solid $accent/default; padding: 6px 10px; }
 QCheckBox { spacing: 10px; }
 QCheckBox::indicator { width: 18px; height: 18px; }
+QComboBox, QDateTimeEdit { background: $bg/surface; border: 1px solid $border/input;
+  border-radius: 6px; padding: 7px 11px; min-height: 20px; }
+QComboBox:focus, QDateTimeEdit:focus { border: 2px solid $accent/default; padding: 6px 10px; }
+QComboBox[erro="true"], QDateTimeEdit[erro="true"] { border: 2px solid $status/danger;
+  padding: 6px 10px; }
+QComboBox QLineEdit { border: none; padding: 0; background: transparent; }
+QComboBox::drop-down, QDateTimeEdit::drop-down { border: none; width: 28px; }
+QComboBox::down-arrow, QDateTimeEdit::down-arrow { image: url($seta); width: 16px;
+  height: 16px; }
+QComboBox QAbstractItemView { background: $bg/surface; selection-background-color: $bg/selected;
+  selection-color: $text/primary; border: 1px solid $border/default; }
+QDialog#dialogo { background: $bg/surface; }
+QTabWidget::pane { border: none; border-top: 1px solid $border/default; top: -1px; }
+QTabBar::tab { background: transparent; border: none; border-bottom: 2px solid transparent;
+  padding: 8px 2px; margin-right: 20px; color: $text/secondary; }
+QTabBar::tab:selected { color: $text/primary; font-weight: 500;
+  border-bottom: 2px solid $accent/default; }
+QTabBar::tab:hover { color: $text/primary; }
+QTabBar::tab:focus { text-decoration: underline; }
+QTableWidget { background: $bg/surface; border: 1px solid $border/default; border-radius: 8px;
+  alternate-background-color: $bg/surface; selection-background-color: $bg/selected;
+  selection-color: $text/primary; outline: none; }
+QTableWidget::item { padding: 10px 12px; border-bottom: 1px solid $border/default; }
+QTableWidget::item:selected { background: $bg/selected; color: $text/primary; }
+QTableWidget:focus { border: 2px solid $accent/default; }
+QHeaderView::section { background: $bg/surface; color: $text/secondary; font-size: 13px;
+  font-weight: 500; border: none; border-bottom: 1px solid $border/default;
+  padding: 10px 12px; }
+QLabel[etiqueta] { border-radius: 11px; padding: 2px 10px; font-size: 13px; }
+QLabel[etiqueta="neutra"] { background: $bg/surface-alt; color: $text/secondary;
+  border: 1px solid $border/default; }
+QLabel[etiqueta="atencao"] { background: $status/warning-bg; color: $status/warning;
+  border: 1px solid $status/warning-bg; }
+QLabel[etiqueta="sucesso"] { background: $status/success-bg; color: $status/success;
+  border: 1px solid $status/success-bg; }
 """
 
 
 def folha_de_estilo() -> str:
     """Troca cada $token pela cor do tema (os maiores primeiro, para não cortar nomes)."""
-    qss = QSS.replace("$fontes", FONTES)
+    seta = Path(str(resources.files("baliza.interface").joinpath("seta.svg"))).as_posix()
+    qss = QSS.replace("$fontes", FONTES).replace("$seta", seta)
     for nome in sorted(CORES, key=len, reverse=True):
         qss = qss.replace(f"${nome}", CORES[nome])
     return qss
