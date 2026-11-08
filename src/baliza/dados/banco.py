@@ -116,6 +116,11 @@ MIGRACOES: list[str] = [
         UNIQUE (conta_entidade_id, conta_fornecedor_id, chave_pix_id)
     );
     """,
+    # 6 · desmarcar não apaga a marcação: guarda quando foi desmarcada, e o histórico de
+    # cadastros continua valendo para a regra de exclusão (RN05).
+    """
+    ALTER TABLE marcacao ADD COLUMN desmarcada_em TEXT;
+    """,
 ]
 
 
