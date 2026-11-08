@@ -4,7 +4,7 @@
 
 Sistema desktop e offline para conferir as contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar.
 
-> Em desenvolvimento. Versão atual: 0.1 · Fundação.
+> Em desenvolvimento. Versão atual: 0.2 · Primeiro uso.
 
 ## O que o Baliza faz
 
