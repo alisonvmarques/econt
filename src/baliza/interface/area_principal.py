@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 from baliza.dados.banco import BaseDeDados
 from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
 from baliza.interface.componentes import texto
+from baliza.interface.configuracoes import PaginaConfiguracoes
 from baliza.interface.entidade import PaginaEntidade, pixmap_do_logo
 from baliza.interface.icones import icone
 from baliza.interface.tema import CORES
@@ -48,7 +49,7 @@ DESCRICOES = {
     "consulta": "A Consulta de fornecedores chega na versão 0.6.",
     "fornecedores": "O cadastro de fornecedores chega na versão 0.4.",
     "entidade": "As contas da entidade chegam na versão 0.3.",
-    "configuracoes": "As configurações chegam ao longo das próximas versões.",
+    "configuracoes": "Bancos e, nas próximas versões, impressão, backup e senha.",
 }
 
 
@@ -150,6 +151,8 @@ class AreaPrincipal(QWidget):
             pagina = PaginaEntidade(obter_entidade(self.base.conexao))
             pagina.salva.connect(self._salvar_entidade)
             return pagina
+        if chave == "configuracoes" and self.base is not None:
+            return PaginaConfiguracoes(self.base)
         return PaginaEmConstrucao(rotulo, DESCRICOES[chave])
 
     def _salvar_entidade(self, entidade: Entidade) -> None:
