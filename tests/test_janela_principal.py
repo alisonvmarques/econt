@@ -1,8 +1,8 @@
 from baliza.interface.janela_principal import JanelaPrincipal
 
 
-def test_janela_abre_com_titulo_baliza(aplicacao):
-    janela = JanelaPrincipal()
+def test_janela_abre_com_titulo_baliza(aplicacao, tmp_path):
+    janela = JanelaPrincipal(tmp_path / "dados.baliza")
     janela.show()
     aplicacao.processEvents()
 
