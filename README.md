@@ -1,5 +1,7 @@
 # Baliza
 
+[![Testes](https://github.com/alisonvmarques/baliza/actions/workflows/testes.yml/badge.svg)](https://github.com/alisonvmarques/baliza/actions/workflows/testes.yml)
+
 Sistema desktop e offline para conferir as contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar.
 
 ## Desenvolvimento
