@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "baliza"
+version = "0.1.0"
+description = "Sistema desktop e offline para conferir as contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Alison Vasconcelos Marques" }]
+keywords = ["fornecedores", "pagamentos", "pix", "contas bancárias", "desktop"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "PySide6>=6.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[project.urls]
+"Repositório" = "https://github.com/alisonvmarques/baliza"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/baliza"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"

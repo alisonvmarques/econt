@@ -1,0 +1,22 @@
+# Ambientes e caches do Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Dados do Baliza: nunca vão para o repositório
+*.baliza
+*.baliza.tmp
+/backups/
+/dados/
+
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
