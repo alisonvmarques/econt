@@ -21,6 +21,7 @@ from baliza.interface.componentes import texto
 from baliza.interface.configuracoes import PaginaConfiguracoes
 from baliza.interface.contas import PaginaContas
 from baliza.interface.entidade import PaginaEntidade, pixmap_do_logo
+from baliza.interface.fornecedores import PaginaFornecedores
 from baliza.interface.icones import icone
 from baliza.interface.tema import CORES
 
@@ -48,7 +49,7 @@ class PaginaEmConstrucao(QWidget):
 DESCRICOES = {
     "inicio": "O resumo do que está cadastrado chega na versão 0.7.",
     "consulta": "A Consulta de fornecedores chega na versão 0.6.",
-    "fornecedores": "O cadastro de fornecedores chega na versão 0.4.",
+    "fornecedores": "Fornecedores, com as contas bancárias e as chaves Pix.",
     "entidade": "Os dados e as contas da entidade.",
     "configuracoes": "Bancos e, nas próximas versões, impressão, backup e senha.",
 }
@@ -152,6 +153,8 @@ class AreaPrincipal(QWidget):
             pagina = PaginaEntidade(obter_entidade(self.base.conexao), PaginaContas(self.base))
             pagina.salva.connect(self._salvar_entidade)
             return pagina
+        if chave == "fornecedores" and self.base is not None:
+            return PaginaFornecedores(self.base)
         if chave == "configuracoes" and self.base is not None:
             return PaginaConfiguracoes(self.base)
         return PaginaEmConstrucao(rotulo, DESCRICOES[chave])

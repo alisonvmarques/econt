@@ -123,6 +123,13 @@ class CampoBase(QWidget):
     def tem_erro(self) -> bool:
         return bool(self.caixa.property("erro"))
 
+    def definir_ajuda(self, ajuda: str) -> None:
+        """Troca a linha de ajuda; um erro à mostra continua até ser corrigido."""
+        self._ajuda = ajuda
+        if not self.tem_erro():
+            self.linha_ajuda.setText(ajuda)
+            self.linha_ajuda.setVisible(bool(ajuda))
+
 
 class Campo(CampoBase):
     """Campo de texto."""
@@ -149,6 +156,11 @@ class CampoEscolha(CampoBase):
         super().__init__(rotulo, QComboBox(), ajuda)
         for chave, rotulo_opcao in opcoes:
             self.caixa.addItem(rotulo_opcao, chave)
+        # A largura vem do layout, não do nome mais longo da lista (há bancos com nomes enormes).
+        self.caixa.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+        )
+        self.caixa.setMinimumContentsLength(12)
         if busca:
             self.caixa.setEditable(True)
             self.caixa.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
@@ -214,6 +226,15 @@ class Dialogo(QDialog):
         self.confirmar = botao(confirmar, "principal")
         self.cancelar.clicked.connect(self.reject)
         self.confirmar.clicked.connect(self.ao_confirmar)
+
+    def showEvent(self, evento) -> None:  # noqa: N802 (nome do Qt)
+        # Altura calculada para a largura real: textos que quebram linha não se sobrepõem
+        # aos campos.
+        largura = max(self.minimumWidth(), self.width())
+        altura = self.layout().totalHeightForWidth(largura)
+        if altura > 0:
+            self.resize(largura, max(altura, self.layout().minimumSize().height()))
+        super().showEvent(evento)
 
     def fechar_corpo(self) -> None:
         """Chame depois de acrescentar os campos: põe os botões no fim."""
@@ -298,6 +319,7 @@ def empilhar(*widgets: QWidget, margem: int = 8) -> QWidget:
     layout = QVBoxLayout(caixa)
     layout.setContentsMargins(margem, 6, margem, 6)
     layout.setSpacing(4)
+    layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
     for w in widgets:
         layout.addWidget(w, 0, Qt.AlignmentFlag.AlignLeft)
         w.ensurePolished()
