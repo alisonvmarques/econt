@@ -166,6 +166,8 @@ class TelaDadosEntidade(TelaCentral):
         self.salvar = botao("Salvar e continuar", "principal")
         self.adicionar(linha_de_acoes(self.salvar))
         self.salvar.clicked.connect(self._salvar)
+        for campo in (self.formulario.razao_social, self.formulario.cnpj):  # RNF05
+            campo.caixa.returnPressed.connect(self._salvar)
 
     def _salvar(self) -> None:
         entidade = self.formulario.entidade_validada()
@@ -212,6 +214,8 @@ class PaginaEntidade(QWidget):
         if contas is not None:
             self.abas.addTab(contas, "Contas")
         self.salvar.clicked.connect(self._salvar)
+        for campo in (self.formulario.razao_social, self.formulario.cnpj):  # RNF05
+            campo.caixa.returnPressed.connect(self._salvar)
 
     def _salvar(self) -> None:
         entidade = self.formulario.entidade_validada()

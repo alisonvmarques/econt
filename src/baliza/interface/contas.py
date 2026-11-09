@@ -327,6 +327,7 @@ class PaginaContas(QStackedWidget):
         self.detalhe.editar.clicked.connect(lambda: self.abrir_formulario(self._conta()))
         self.detalhe.ativar.clicked.connect(self.trocar_ativa)
         self.detalhe.registrar.clicked.connect(self.registrar_pedido)
+        self.detalhe.valor.caixa.returnPressed.connect(self.registrar_pedido)  # RNF05
         self.atualizar()
 
     def _conta(self) -> ContaEntidade:

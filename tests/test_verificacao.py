@@ -17,3 +17,14 @@ def test_verificar_abre_tudo_sem_tocar_nos_dados(aplicacao, tmp_path, monkeypatc
 
 def test_icone_do_baliza(aplicacao):
     assert not icone_do_baliza().isNull()
+
+
+def test_erro_inesperado_em_portugues():
+    import errno
+
+    from baliza.app import MENSAGEM_DE_ERRO, mensagem_de_erro_inesperado
+
+    assert "espaço no disco" in mensagem_de_erro_inesperado(OSError(errno.ENOSPC, "No space"))
+    assert "permissão" in mensagem_de_erro_inesperado(PermissionError(13, "denied"))
+    assert mensagem_de_erro_inesperado(RuntimeError("x")) == MENSAGEM_DE_ERRO
+    assert "continuam no arquivo" in MENSAGEM_DE_ERRO

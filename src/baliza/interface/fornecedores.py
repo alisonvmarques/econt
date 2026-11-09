@@ -215,6 +215,17 @@ class FormularioFornecedor(QWidget):
         self.documento.caixa.editingFinished.connect(self._formatar_documento)
         self.cancelar.clicked.connect(self.cancelado.emit)
         self.salvar.clicked.connect(self._salvar)
+        # Enter em qualquer campo salva, como nos diálogos (RNF05).
+        for campo in (
+            self.documento,
+            self.razao_social,
+            self.nome_fantasia,
+            self.telefone,
+            self.email,
+            self.endereco,
+            self.observacoes,
+        ):
+            campo.caixa.returnPressed.connect(self._salvar)
 
     def _ajustar_ao_tipo(self) -> None:
         pf = self.tipo.valor() == "pf"

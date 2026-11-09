@@ -78,12 +78,49 @@ def verificar(relatorio: str | None = None) -> int:
     return codigo
 
 
+MENSAGEM_DE_ERRO = (
+    "Algo não saiu como esperado e esta ação não foi concluída. Os dados gravados antes "
+    "continuam no arquivo. Se acontecer de novo, feche e abra o Baliza; se o problema for "
+    "falta de espaço no disco, libere espaço antes de continuar."
+)
+
+
+def mensagem_de_erro_inesperado(erro: BaseException) -> str:
+    """RNF04: em português, sem termos técnicos na frase principal."""
+    if isinstance(erro, OSError) and getattr(erro, "errno", None) == 28:
+        return (
+            "Não há espaço no disco para gravar os dados. Libere espaço e repita a ação. "
+            "Os dados gravados antes continuam no arquivo."
+        )
+    if isinstance(erro, PermissionError):
+        return (
+            "O Baliza não tem permissão para gravar na pasta dos dados. Confira as permissões "
+            "da pasta e repita a ação. Os dados gravados antes continuam no arquivo."
+        )
+    return MENSAGEM_DE_ERRO
+
+
+def avisar_erro_inesperado(tipo, erro, rastro) -> None:
+    """Em vez de fechar sem explicação, mostra o que houve e deixa o Baliza aberto."""
+    import traceback
+
+    from PySide6.QtWidgets import QMessageBox
+
+    caixa = QMessageBox()
+    caixa.setIcon(QMessageBox.Icon.Warning)
+    caixa.setWindowTitle("Baliza")
+    caixa.setText(mensagem_de_erro_inesperado(erro))
+    caixa.setDetailedText("".join(traceback.format_exception(tipo, erro, rastro)))
+    caixa.exec()
+
+
 def main() -> int:
     if "--verificar" in sys.argv:
         posicao = sys.argv.index("--verificar")
         relatorio = sys.argv[posicao + 1] if len(sys.argv) > posicao + 1 else None
         return verificar(relatorio)
     aplicacao = criar_aplicacao()
+    sys.excepthook = avisar_erro_inesperado
     janela = JanelaPrincipal()
     janela.show()
     return aplicacao.exec()
