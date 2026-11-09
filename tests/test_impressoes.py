@@ -46,47 +46,64 @@ def cenario(tmp_path):
     return base, a, b
 
 
-def _esqueleto(texto: str) -> str:
-    """Só letras e números: a extração de texto do PDF troca alguns sinais (hífen, dois-pontos)
-    por caracteres internos da fonte, embora eles apareçam normais na folha."""
-    return "".join(c for c in texto if c.isalnum())
-
-
-def _texto_do_pdf(caminho) -> tuple[int, str]:
+def _paginas_do_pdf(caminho) -> int:
     pdf = QPdfDocument(None)
     pdf.load(str(caminho))
     paginas = pdf.pageCount()
-    texto = "\n".join(pdf.getAllText(i).text() for i in range(paginas))
     pdf.close()
-    return paginas, _esqueleto(texto)
+    return paginas
 
 
-def test_folha_completa_com_dois_fornecedores_e_linha_de_corte(aplicacao, cenario, tmp_path):
+@pytest.fixture
+def desenhado(monkeypatch):
+    """Guarda o HTML de tudo o que é desenhado na folha (blocos, rodapés, "corte aqui").
+
+    O conteúdo é conferido aqui, antes de virar PDF: ler o texto de volta de um PDF depende
+    do sistema (no Windows a leitura vem vazia, no macOS alguns números vêm trocados).
+    """
+    from baliza.interface import impressao
+
+    textos = []
+    original = impressao._documento_no
+
+    def guardar(dispositivo, html, logo, largura):
+        textos.append(html)
+        return original(dispositivo, html, logo, largura)
+
+    monkeypatch.setattr(impressao, "_documento_no", guardar)
+    return textos
+
+
+def test_folha_completa_com_dois_fornecedores_e_linha_de_corte(
+    aplicacao, cenario, tmp_path, desenhado
+):
     base, a, b = cenario
     c = base.conexao
     impressao = dados_para_pagamento([consultar(c, a), consultar(c, b)], obter_entidade(c), QUANDO)
     salvar_pdf_impressao(impressao, str(tmp_path / "folha.pdf"))
-    paginas, texto = _texto_do_pdf(tmp_path / "folha.pdf")
-    assert paginas == 1
-    assert _esqueleto("Distribuidora Exemplo de Materiais Ltda") in texto
-    assert _esqueleto("Maria Exemplo da Silva") in texto
-    assert _esqueleto("corte aqui") in texto
-    assert texto.count(_esqueleto("Emitido pelo Baliza em 08/11/2026 às 19:05")) == 2
-    assert _esqueleto("Fundo de Saúde Exemplo") in texto
+    assert _paginas_do_pdf(tmp_path / "folha.pdf") == 1
+    tudo = "\n".join(desenhado)
+    assert "Distribuidora Exemplo de Materiais Ltda" in tudo
+    assert "Maria Exemplo da Silva" in tudo
+    assert "corte aqui" in tudo
+    assert tudo.count("Emitido pelo Baliza em 08/11/2026 às 19:05") == 2
+    assert tudo.count("Fundo de Saúde Exemplo") == 2
 
 
-def test_meia_folha_mostra_onde_esta_cadastrada_e_so_o_que_esta_ativo(aplicacao, cenario, tmp_path):
+def test_meia_folha_mostra_onde_esta_cadastrada_e_so_o_que_esta_ativo(
+    aplicacao, cenario, tmp_path, desenhado
+):
     base, a, _ = cenario
     c = base.conexao
     salvar_pdf_impressao(
         dados_para_pagamento([consultar(c, a)], obter_entidade(c), QUANDO),
         str(tmp_path / "meia.pdf"),
     )
-    _, texto = _texto_do_pdf(tmp_path / "meia.pdf")
-    assert _esqueleto("001 · Ag. 1234-5 · C/C 98765-4") in texto
-    assert _esqueleto("Conta Movimento") in texto
-    assert _esqueleto("Nenhuma: não usar para pagar") in texto
-    assert _esqueleto("33333-1") not in texto  # conta inativa não sai na meia folha (RNF11)
+    tudo = "\n".join(desenhado)
+    assert "001 · Ag. 1234-5 · C/C 98765-4" in tudo
+    assert "Conta Movimento" in tudo
+    assert "Nenhuma: não usar para pagar" in tudo
+    assert "33333-1" not in tudo  # conta inativa não sai na meia folha (RNF11)
 
 
 def test_meia_folha_aceita_um_ou_dois(aplicacao, cenario):
@@ -96,7 +113,7 @@ def test_meia_folha_aceita_um_ou_dois(aplicacao, cenario):
         dados_para_pagamento(resultados, None, QUANDO)
 
 
-def test_ficha_completa_quebra_pagina_e_numera(aplicacao, cenario, tmp_path):
+def test_ficha_completa_quebra_pagina_e_numera(aplicacao, cenario, tmp_path, desenhado):
     base, a, _ = cenario
     c = base.conexao
     for numero in range(60):
@@ -109,12 +126,13 @@ def test_ficha_completa_quebra_pagina_e_numera(aplicacao, cenario, tmp_path):
         QUANDO,
     )
     salvar_pdf_impressao(impressao, str(tmp_path / "ficha.pdf"))
-    paginas, texto = _texto_do_pdf(tmp_path / "ficha.pdf")
+    paginas = _paginas_do_pdf(tmp_path / "ficha.pdf")
     assert paginas >= 2
-    assert _esqueleto(f"Página 1 de {paginas}") in texto
-    assert _esqueleto(f"Página {paginas} de {paginas}") in texto
-    assert _esqueleto("Inativa") in texto  # a ficha mostra tudo, inclusive o que está inativo
-    assert _esqueleto("financeiro@exemplo.com.br") in texto
+    tudo = "\n".join(desenhado)
+    assert f"Página 1 de {paginas}" in tudo
+    assert f"Página {paginas} de {paginas}" in tudo
+    assert "Inativa" in tudo  # a ficha mostra tudo, inclusive o que está inativo
+    assert "financeiro@exemplo.com.br" in tudo
 
 
 def test_janela_de_impressao_salva_em_pdf(aplicacao, cenario, tmp_path):
