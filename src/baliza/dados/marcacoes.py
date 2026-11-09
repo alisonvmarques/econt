@@ -35,6 +35,8 @@ class Item:
     id: int
     rotulo: str
     ativo: bool
+    nome: str = ""  # "Conta corrente", "Pix · CNPJ"
+    dados: str = ""  # "001 · Ag. 1234-5 · C/C 98765-4", a chave formatada
 
     @property
     def coluna(self) -> str:
@@ -42,13 +44,19 @@ class Item:
 
 
 def item_da_conta(conta: ContaFornecedor) -> Item:
-    return Item(
-        "conta", conta.id, f"{conta.banco} · Ag. {conta.agencia} · C/C {conta.conta}", conta.ativa
-    )
+    dados = f"{conta.banco} · Ag. {conta.agencia} · C/C {conta.conta}"
+    return Item("conta", conta.id, dados, conta.ativa, conta.nome_do_tipo, dados)
 
 
 def item_da_chave(chave: ChavePix) -> Item:
-    return Item("chave", chave.id, f"Pix · {chave.chave_formatada}", chave.ativa)
+    return Item(
+        "chave",
+        chave.id,
+        f"Pix · {chave.chave_formatada}",
+        chave.ativa,
+        f"Pix · {chave.nome_do_tipo}",
+        chave.chave_formatada,
+    )
 
 
 def itens_do_fornecedor(conexao: sqlite3.Connection, fornecedor_id: int) -> list[Item]:
