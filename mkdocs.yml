@@ -1,0 +1,22 @@
+# Site da documentação. Para ver no navegador: pip install mkdocs && mkdocs serve
+site_name: Baliza
+site_description: Guia de uso do Baliza
+docs_dir: docs
+theme:
+  name: mkdocs
+  locale: pt_BR
+nav:
+  - Início: index.md
+  - Instalação: instalacao.md
+  - Primeiros passos: primeiros-passos.md
+  - Áreas:
+      - Início: inicio.md
+      - Consulta: consulta.md
+      - Fornecedores: fornecedores.md
+      - Entidade: entidade.md
+      - Configurações: configuracoes.md
+  - Perguntas frequentes: perguntas-frequentes.md
+  - Para quem desenvolve:
+      - Criptografia: criptografia.md
+      - Lista de bancos: atualizar-lista-de-bancos.md
+      - Revisão de qualidade: qualidade.md
