@@ -27,8 +27,12 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
+          # As bibliotecas xcb entram no AppImage, para a janela abrir em qualquer Linux.
+          # desktop-file-utils: o appimagetool confere o atalho do menu com ele.
           sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
-            libfontconfig1 libdbus-1-3 file
+            libfontconfig1 libdbus-1-3 file desktop-file-utils \
+            libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 \
+            libxcb-shape0 libxcb-util1
 
       - name: appimagetool (Linux)
         if: runner.os == 'Linux'
