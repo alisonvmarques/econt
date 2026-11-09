@@ -66,7 +66,9 @@ def test_primeiro_uso_pede_a_entidade_antes_do_resto(aplicacao, tmp_path):
     assert tela.formulario.carregar_logo(_logo(tmp_path))
     tela.salvar.click()
     assert isinstance(janela.tela_atual(), AreaPrincipal)
-    assert janela.area.navegacao.nome_entidade.text().replace("\n", " ") == "Fundo de Saúde Exemplo"
+    # O texto depende da fonte de cada sistema; o nome inteiro fica sempre na dica.
+    assert janela.area.navegacao.nome_entidade.toolTip() == "Fundo de Saúde Exemplo"
+    assert janela.area.navegacao.nome_entidade.text().startswith("Fundo")
     assert not janela.area.navegacao.logo.pixmap().isNull()
     janela.close()
 
@@ -133,9 +135,11 @@ def test_nome_longo_em_duas_linhas_com_reticencias(aplicacao, tmp_path):
     assert rotulo.toolTip() == nome
 
 
-def test_nome_curto_fica_inteiro():
+def test_quebra_entre_palavras_e_so_corta_o_que_nao_cabe():
     from PySide6.QtGui import QFont, QFontMetrics
 
     medidas = QFontMetrics(QFont("Inter", 11))
-    assert em_duas_linhas("Fundo", medidas, LARGURA_NOME) == "Fundo"
-    assert "…" not in em_duas_linhas("Fundo de Saúde Exemplo", medidas, LARGURA_NOME)
+    nome = "Fundo de Saúde Exemplo"
+    assert em_duas_linhas(nome, medidas, 10_000) == nome
+    largura = medidas.horizontalAdvance("Fundo de Saúde") + 2
+    assert em_duas_linhas(nome, medidas, largura) == "Fundo de Saúde\nExemplo"
