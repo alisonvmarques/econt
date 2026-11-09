@@ -74,6 +74,7 @@ def test_busca_lista_e_destaca(aplicacao, cenario):
     assert pagina.lista.count() == 1
     pagina.busca.setText("nada parecido")
     assert "Nenhum fornecedor ativo" in pagina.quantos.text()
+    assert pagina.nada.isVisibleTo(pagina)
 
 
 def test_inativo_nao_aparece(aplicacao, cenario):
@@ -147,7 +148,7 @@ def test_formato_escolhido_nas_configuracoes(aplicacao, cenario):
     assert pagina.impressao.opcoes["folha_completa"].isChecked()
     pagina.impressao.opcoes["meia_folha"].setChecked(True)
     assert formato_escolhido(base) == "meia_folha"
-    assert "Meia folha" in pagina.impressao.retorno.text()
+    assert "Meia folha" in _confirmacao(pagina)
     reaberta = PaginaConfiguracoes(base)
     assert reaberta.impressao.opcoes["meia_folha"].isChecked()
 
@@ -163,3 +164,10 @@ def test_ficha_imprime_a_ficha_completa(aplicacao, cenario, monkeypatch):
     pagina.ficha.imprimir.click()
     assert abertas[0].titulo == "Ficha do fornecedor"
     assert "Distribuidora Exemplo de Materiais Ltda" in abertas[0].html
+
+
+def _confirmacao(widget) -> str:
+    from baliza.interface.componentes import Confirmacao
+
+    confirmacao = widget.window().findChild(Confirmacao, "confirmacao")
+    return confirmacao.text() if confirmacao and confirmacao.isVisibleTo(widget.window()) else ""

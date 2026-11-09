@@ -56,10 +56,12 @@ from baliza.interface.componentes import (
     Campo,
     CampoEscolha,
     Dialogo,
+    EstadoVazio,
     Tabela,
     aviso,
     botao,
     cartao,
+    confirmar_rapido,
     empilhar,
     etiqueta,
     linha_de_acoes,
@@ -112,23 +114,37 @@ class ListaFornecedores(QWidget):
         layout.addLayout(topo)
         self.inativos = QCheckBox("Mostrar inativos")
         layout.addWidget(self.inativos)
-        self.vazia = texto("", "apoio")
-        layout.addWidget(self.vazia)
+        self.vazia = EstadoVazio(
+            "Nenhum fornecedor cadastrado",
+            "Os fornecedores e as contas deles aparecem aqui.",
+            "Cadastrar o primeiro fornecedor",
+        )
+        self.vazia.acao.clicked.connect(lambda: self.novo.click())
+        layout.addWidget(self.vazia, 0, Qt.AlignmentFlag.AlignHCenter)
         self.tabela = Tabela(["Razão social", "CNPJ/CPF", "Contas e Pix", "Situação"])
         self.tabela.setWordWrap(False)
         cabecalho = self.tabela.horizontalHeader()
         cabecalho.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         cabecalho.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.tabela, 1)
+        layout.addStretch()
 
     def mostrar(self, fornecedores: list[Fornecedor], buscando: bool) -> None:
         self.tabela.setVisible(bool(fornecedores))
         self.vazia.setVisible(not fornecedores)
-        self.vazia.setText(
-            "Nenhum fornecedor encontrado. Confira o nome ou o CNPJ/CPF digitado."
-            if buscando
-            else "Nenhum fornecedor cadastrado ainda. Cadastre o primeiro em Novo fornecedor."
-        )
+        if buscando:
+            self.vazia.mudar(
+                "Nenhum fornecedor encontrado",
+                "Confira a grafia ou busque pelo CNPJ ou CPF.",
+            )
+        elif self.inativos.isChecked():
+            self.vazia.mudar("Nenhum fornecedor cadastrado", "Cadastre o primeiro fornecedor.")
+        else:
+            self.vazia.mudar(
+                "Nenhum fornecedor cadastrado",
+                "Os fornecedores e as contas deles aparecem aqui.",
+            )
+        self.vazia.acao.setVisible(not buscando)
         self.tabela.setRowCount(len(fornecedores))
         for linha, f in enumerate(fornecedores):
             self.tabela.celula(linha, 0, f.razao_social, f.id)
@@ -259,6 +275,7 @@ class FormularioFornecedor(QWidget):
             editar_fornecedor(self.base.conexao, self.fornecedor_id, dados)
         self.base.salvar()
         self.salvo.emit(self.fornecedor_id)
+        confirmar_rapido(self, "Fornecedor salvo.")
 
 
 # Diálogos de conta e chave ----------------------------------------------------------------
@@ -282,6 +299,7 @@ class DialogoItem(Dialogo):
         self.aviso_repeticao.setVisible(False)
         self.excluir: QPushButton | None = None
         self.ativar: QPushButton | None = None
+        self.feito = ""
 
     def montar_acoes(self) -> None:
         self.corpo.addWidget(self.aviso_repeticao)
@@ -340,6 +358,7 @@ class DialogoItem(Dialogo):
             return
         self.item_id = self.gravar()
         self.base.salvar()
+        self.feito = f"{self.NOME.capitalize()} salva."
         self.accept()
 
     def _excluir(self) -> None:
@@ -351,6 +370,7 @@ class DialogoItem(Dialogo):
         ):
             excluir_item(self.base.conexao, self.TABELA, self.item.id)
             self.base.salvar()
+            self.feito = f"{self.NOME.capitalize()} excluída."
             self.accept()
 
     def _trocar_ativa(self) -> None:
@@ -364,6 +384,8 @@ class DialogoItem(Dialogo):
             return
         definir_item_ativo(self.base.conexao, self.TABELA, self.item.id, not self.item.ativa)
         self.base.salvar()
+        estado = "reativada" if not self.item.ativa else "inativada"
+        self.feito = f"{self.NOME.capitalize()} {estado}."
         self.accept()
 
 
@@ -668,12 +690,15 @@ class FichaFornecedor(QWidget):
         return DialogoChavePix(self, self.base, self.fornecedor, chave)
 
     def abrir_conta(self, conta: ContaFornecedor | None) -> None:
-        if self.criar_dialogo_conta(conta).exec():
-            self.mostrar(self.fornecedor.id)
+        self._depois_do_dialogo(self.criar_dialogo_conta(conta))
 
     def abrir_chave(self, chave: ChavePix | None) -> None:
-        if self.criar_dialogo_chave(chave).exec():
+        self._depois_do_dialogo(self.criar_dialogo_chave(chave))
+
+    def _depois_do_dialogo(self, dialogo: DialogoItem) -> None:
+        if dialogo.exec():
             self.mostrar(self.fornecedor.id)
+            confirmar_rapido(self, dialogo.feito)
 
     def imprimir_ficha(self) -> None:
         """RF14 · Ficha completa em A4, com pré-visualização e opção de salvar em PDF."""
@@ -701,6 +726,7 @@ class FichaFornecedor(QWidget):
         definir_fornecedor_ativo(self.base.conexao, f.id, not f.ativo)
         self.base.salvar()
         self.mostrar(f.id)
+        confirmar_rapido(self, "Fornecedor reativado." if not f.ativo else "Fornecedor inativado.")
 
     def _excluir(self) -> None:
         f = self.fornecedor
@@ -714,6 +740,7 @@ class FichaFornecedor(QWidget):
             excluir_fornecedor(self.base.conexao, f.id)
             self.base.salvar()
             self.excluido.emit()
+            confirmar_rapido(self, "Fornecedor excluído.")
 
 
 # Página -----------------------------------------------------------------------------------

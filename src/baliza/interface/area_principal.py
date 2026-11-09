@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QButtonGroup,
@@ -24,6 +24,7 @@ from baliza.interface.contas import PaginaContas
 from baliza.interface.entidade import PaginaEntidade, pixmap_do_logo
 from baliza.interface.fornecedores import PaginaFornecedores
 from baliza.interface.icones import icone
+from baliza.interface.inicio import PaginaInicio
 from baliza.interface.tema import CORES
 
 AREAS = [
@@ -48,7 +49,7 @@ class PaginaEmConstrucao(QWidget):
 
 
 DESCRICOES = {
-    "inicio": "O resumo do que está cadastrado chega na versão 0.7.",
+    "inicio": "Resumo do que está cadastrado no Baliza.",
     "consulta": "Busque o fornecedor e confira onde cada conta está cadastrada.",
     "fornecedores": "Fornecedores, com as contas bancárias e as chaves Pix.",
     "entidade": "Os dados e as contas da entidade.",
@@ -126,6 +127,8 @@ class Navegacao(QFrame):
 
 
 class AreaPrincipal(QWidget):
+    restaurado = Signal(object)
+
     def __init__(self, base: BaseDeDados | None = None) -> None:
         super().__init__()
         self.base = base
@@ -154,13 +157,30 @@ class AreaPrincipal(QWidget):
             pagina = PaginaEntidade(obter_entidade(self.base.conexao), PaginaContas(self.base))
             pagina.salva.connect(self._salvar_entidade)
             return pagina
+        if chave == "inicio" and self.base is not None:
+            pagina = PaginaInicio(self.base)
+            pagina.ir.connect(self._atalho)
+            return pagina
         if chave == "consulta" and self.base is not None:
             return PaginaConsulta(self.base)
         if chave == "fornecedores" and self.base is not None:
             return PaginaFornecedores(self.base)
         if chave == "configuracoes" and self.base is not None:
-            return PaginaConfiguracoes(self.base)
+            pagina = PaginaConfiguracoes(self.base)
+            pagina.restaurado.connect(self.restaurado.emit)
+            return pagina
         return PaginaEmConstrucao(rotulo, DESCRICOES[chave])
+
+    def _atalho(self, destino: str) -> None:
+        """Atalhos do painel inicial."""
+        if destino == "novo_fornecedor":
+            self.ir_para("fornecedores")
+            self.indice["fornecedores"].abrir_formulario(None)
+        elif destino == "contas_entidade":
+            self.ir_para("entidade")
+            self.indice["entidade"].abas.setCurrentIndex(1)
+        else:
+            self.ir_para("consulta")
 
     def _salvar_entidade(self, entidade: Entidade) -> None:
         salvar_entidade(self.base.conexao, entidade)

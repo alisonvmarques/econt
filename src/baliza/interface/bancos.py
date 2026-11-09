@@ -12,6 +12,7 @@ from baliza.interface.componentes import (
     Dialogo,
     Tabela,
     botao,
+    confirmar_rapido,
     empilhar,
     etiqueta,
     texto,
@@ -105,6 +106,7 @@ class PaginaBancos(QWidget):
         if dialogo.exec():
             self.busca.setText(dialogo.banco.codigo)
             self.alterada.emit()
+            confirmar_rapido(self, "Banco cadastrado.")
 
     def criar_dialogo(self) -> DialogoBanco:
         return DialogoBanco(self, self.base)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from PySide6.QtCore import QDateTime, Qt, Signal
+from PySide6.QtCore import QDateTime, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -365,3 +365,66 @@ class Abas(QTabWidget):
         super().__init__()
         self.setDocumentMode(True)
         self.tabBar().setDrawBase(False)
+
+
+class EstadoVazio(QFrame):
+    """T26 · Área vazia: diz o que é e qual o próximo passo, com o botão para dar esse passo."""
+
+    def __init__(self, titulo: str, explicacao: str, acao: str | None = None) -> None:
+        super().__init__()
+        self.setObjectName("cartao")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(32, 28, 32, 28)
+        layout.setSpacing(8)
+        self.titulo = texto(titulo, "secao")
+        self.explicacao = texto(explicacao, "apoio")
+        for rotulo in (self.titulo, self.explicacao):
+            rotulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(rotulo)
+        self.acao = botao(acao, "principal") if acao else None
+        if self.acao:
+            layout.addSpacing(8)
+            layout.addWidget(self.acao, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.setMinimumWidth(480)
+        self.setMaximumWidth(560)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+
+    def mudar(self, titulo: str, explicacao: str) -> None:
+        self.titulo.setText(titulo)
+        self.explicacao.setText(explicacao)
+
+
+DURACAO_CONFIRMACAO_MS = 4000
+
+
+class Confirmacao(QLabel):
+    """T27 · Confirmação rápida no canto da janela; some sozinha em 4 segundos."""
+
+    def __init__(self, janela: QWidget) -> None:
+        super().__init__(janela)
+        self.setObjectName("confirmacao")
+        self.setVisible(False)
+        self.relogio = QTimer(self)
+        self.relogio.setSingleShot(True)
+        self.relogio.timeout.connect(self.hide)
+
+    def mostrar(self, mensagem: str) -> None:
+        self.setText(f"✓  {mensagem}")
+        self.adjustSize()
+        janela = self.parentWidget()
+        self.move(janela.width() - self.width() - 24, janela.height() - self.height() - 24)
+        self.raise_()
+        self.show()
+        self.relogio.start(DURACAO_CONFIRMACAO_MS)
+
+
+def confirmar_rapido(widget: QWidget, mensagem: str) -> Confirmacao:
+    """Mostra a confirmação rápida na janela de cima do widget (ou nele mesmo, se sozinho)."""
+    janela = widget.window()
+    confirmacao = janela.findChild(
+        Confirmacao, "confirmacao", Qt.FindChildOption.FindDirectChildrenOnly
+    )
+    if confirmacao is None:
+        confirmacao = Confirmacao(janela)
+    confirmacao.mostrar(mensagem)
+    return confirmacao

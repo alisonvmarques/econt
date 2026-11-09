@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from pathlib import Path
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 
+from baliza.dados.backup import backup_ao_fechar
 from baliza.dados.banco import BaseDeDados
 from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
 from baliza.dados.local import caminho_padrao
@@ -16,6 +18,7 @@ from baliza.interface.acesso import (
     TelaNovaSenha,
 )
 from baliza.interface.area_principal import AreaPrincipal
+from baliza.interface.componentes import confirmar_rapido
 from baliza.interface.entidade import TelaDadosEntidade
 from baliza.interface.tema import folha_de_estilo
 
@@ -96,6 +99,15 @@ class JanelaPrincipal(QMainWindow):
             self._mostrar(TelaDadosEntidade()).salva.connect(self._salvar_entidade)
         else:
             self.area = self._mostrar(AreaPrincipal(self.base))
+            self.area.restaurado.connect(self._trocar_pelos_restaurados)
+
+    def _trocar_pelos_restaurados(self, restaurada: BaseDeDados) -> None:
+        """Depois de restaurar, os dados antigos em memória são descartados sem gravar: o
+        arquivo já tem os dados do backup (e os antigos viraram um backup)."""
+        self.base.conexao.close()
+        self.base = restaurada
+        self._seguir()
+        confirmar_rapido(self, "Backup restaurado.")
 
     def _salvar_entidade(self, entidade: Entidade) -> None:
         salvar_entidade(self.base.conexao, entidade)
@@ -104,6 +116,10 @@ class JanelaPrincipal(QMainWindow):
 
     def closeEvent(self, evento) -> None:  # noqa: N802 (nome do Qt)
         if self.base is not None:
-            self.base.fechar()
+            self.base.salvar()
+            # Sem espaço ou sem permissão, o backup não sai, mas os dados já estão gravados.
+            with suppress(OSError):
+                backup_ao_fechar(self.base, self.caminho)  # RF22
+            self.base.conexao.close()
             self.base = None
         super().closeEvent(evento)

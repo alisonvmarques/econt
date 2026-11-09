@@ -89,9 +89,10 @@ QCheckBox::indicator:focus { border: 2px solid $text/primary; width: 14px; heigh
 QCheckBox::indicator:disabled { background: $bg/surface-alt; border-color: $border/default; }
 QCheckBox::indicator:checked:disabled { background: $text/placeholder;
   border-color: $text/placeholder; }
-QComboBox, QDateTimeEdit { background: $bg/surface; border: 1px solid $border/input;
+QComboBox, QDateTimeEdit, QSpinBox { background: $bg/surface; border: 1px solid $border/input;
   border-radius: 6px; padding: 7px 11px; min-height: 20px; }
-QComboBox:focus, QDateTimeEdit:focus { border: 2px solid $accent/default; padding: 6px 10px; }
+QComboBox:focus, QDateTimeEdit:focus, QSpinBox:focus { border: 2px solid $accent/default;
+  padding: 6px 10px; }
 QComboBox[erro="true"], QDateTimeEdit[erro="true"] { border: 2px solid $status/danger;
   padding: 6px 10px; }
 QComboBox QLineEdit { border: none; padding: 0; background: transparent; }
@@ -117,6 +118,8 @@ QTableWidget:focus { border: 2px solid $accent/default; }
 QHeaderView::section { background: $bg/surface; color: $text/secondary; font-size: 13px;
   font-weight: 500; border: none; border-bottom: 1px solid $border/default;
   padding: 10px 12px; }
+QLabel#confirmacao { background: $text/primary; color: $text/on-accent; border-radius: 8px;
+  padding: 12px 18px; font-weight: 500; }
 QLabel[etiqueta] { border-radius: 11px; padding: 2px 10px; font-size: 13px; }
 QLabel[etiqueta="neutra"] { background: $bg/surface-alt; color: $text/secondary;
   border: 1px solid $border/default; }

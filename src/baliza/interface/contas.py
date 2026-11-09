@@ -36,10 +36,12 @@ from baliza.interface.componentes import (
     CampoDataHora,
     CampoEscolha,
     Dialogo,
+    EstadoVazio,
     Tabela,
     aviso,
     botao,
     cartao,
+    confirmar_rapido,
     empilhar,
     etiqueta,
     linha_de_acoes,
@@ -148,11 +150,13 @@ class ListaContas(QWidget):
         self.nova = botao("Nova conta", "principal")
         topo.addWidget(self.nova)
         layout.addLayout(topo)
-        self.vazia = texto(
-            "Nenhuma conta cadastrada ainda. Cadastre a primeira conta de onde saem os pagamentos.",
-            "apoio",
+        self.vazia = EstadoVazio(
+            "Nenhuma conta da entidade",
+            "Cadastre as contas de onde saem os pagamentos.",
+            "Cadastrar conta",
         )
-        layout.addWidget(self.vazia)
+        self.vazia.acao.clicked.connect(lambda: self.nova.click())
+        layout.addWidget(self.vazia, 0, Qt.AlignmentFlag.AlignHCenter)
         self.tabela = Tabela(
             ["Descrição", "Banco e conta", "Limite Pix (dia)", "Limite transação (dia)", "Situação"]
         )
@@ -165,6 +169,7 @@ class ListaContas(QWidget):
             "Clique numa conta, ou use Enter, para ver os limites e pedir alteração.", "ajuda"
         )
         layout.addWidget(self.dica)
+        layout.addStretch()
 
     def mostrar(self, contas: list[ContaEntidade]) -> None:
         self.vazia.setVisible(not contas)
@@ -344,6 +349,7 @@ class PaginaContas(QStackedWidget):
         dialogo = self.criar_dialogo(conta)
         if dialogo.exec():
             self.abrir_conta(dialogo.conta_id)
+            confirmar_rapido(self, "Conta salva.")
 
     def abrir_conta(self, conta_id: int) -> None:
         self.conta_aberta = conta_id
@@ -371,6 +377,7 @@ class PaginaContas(QStackedWidget):
         definir_ativa(self.base.conexao, conta.id, not conta.ativa)
         self.base.salvar()
         self.atualizar()
+        confirmar_rapido(self, "Conta inativada." if conta.ativa else "Conta reativada.")
 
     def registrar_pedido(self) -> None:
         detalhe = self.detalhe

@@ -14,11 +14,10 @@ from baliza.interface.acesso import TelaCentral
 from baliza.interface.componentes import (
     Abas,
     Campo,
-    aviso,
     botao,
     cartao,
+    confirmar_rapido,
     linha_de_acoes,
-    mudar_aviso,
     texto,
 )
 from baliza.interface.tema import CORES
@@ -192,10 +191,6 @@ class PaginaEntidade(QWidget):
         coluna = QVBoxLayout(dados)
         coluna.setContentsMargins(0, 20, 0, 0)
         coluna.setSpacing(20)
-        self.retorno = aviso("", "sucesso")
-        self.retorno.setVisible(False)
-        self.retorno.setMaximumWidth(720)
-        coluna.addWidget(self.retorno)
         quadro = cartao()
         quadro.setMaximumWidth(720)
         interno = QVBoxLayout(quadro)
@@ -222,5 +217,4 @@ class PaginaEntidade(QWidget):
         entidade = self.formulario.entidade_validada()
         if entidade:
             self.salva.emit(entidade)
-            mudar_aviso(self.retorno, "Dados da entidade salvos.", "sucesso")
-            self.retorno.setVisible(True)
+            confirmar_rapido(self, "Dados da entidade salvos.")

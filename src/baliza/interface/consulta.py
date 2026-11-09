@@ -25,6 +25,7 @@ from baliza.dados.banco import BaseDeDados
 from baliza.dados.consulta import Encontrado, ResultadoConsulta, buscar, consultar
 from baliza.dados.entidade import obter_entidade
 from baliza.interface.componentes import (
+    EstadoVazio,
     Tabela,
     aviso,
     botao,
@@ -248,6 +249,12 @@ class PaginaConsulta(QWidget):
         coluna.setSpacing(8)
         self.quantos = texto("Digite parte do nome ou do CNPJ/CPF do fornecedor.", "ajuda")
         coluna.addWidget(self.quantos)
+        self.nada = EstadoVazio(
+            "Nenhum fornecedor encontrado",
+            "Confira a grafia ou busque pelo CNPJ ou CPF. Fornecedores inativos não aparecem "
+            "na Consulta.",
+        )
+        coluna.addWidget(self.nada, 0, Qt.AlignmentFlag.AlignHCenter)
         self.lista = QListWidget()
         self.lista.setObjectName("resultados")
         self.lista.setAccessibleName("Fornecedores encontrados")
@@ -258,6 +265,7 @@ class PaginaConsulta(QWidget):
             "ajuda",
         )
         coluna.addWidget(self.dica)
+        coluna.addStretch()
         self.areas.addWidget(self.lista_area)
         self.resultado = Resultado()
         self.areas.addWidget(self.resultado)
@@ -306,16 +314,14 @@ class PaginaConsulta(QWidget):
         if not termo.strip():
             self.quantos.setText("Digite parte do nome ou do CNPJ/CPF do fornecedor.")
         elif not encontrados:
-            self.quantos.setText(
-                "Nenhum fornecedor ativo encontrado. Confira o que foi digitado; fornecedores "
-                "inativos não aparecem na Consulta."
-            )
+            self.quantos.setText("Nenhum fornecedor ativo encontrado.")
         else:
             n = len(encontrados)
             self.quantos.setText(
                 "1 fornecedor encontrado" if n == 1 else f"{n} fornecedores encontrados"
             )
         self.lista.setVisible(bool(encontrados))
+        self.nada.setVisible(bool(termo.strip()) and not encontrados)
         self.dica.setVisible(bool(encontrados))
         self.resultado_atual = None
         self.areas.setCurrentWidget(self.lista_area)

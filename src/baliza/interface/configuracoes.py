@@ -1,12 +1,14 @@
-"""Área Configurações: impressão (T22) e bancos (T24). Backup e senha chegam depois."""
+"""Área Configurações: impressão (T22), backup (T23) e bancos (T24)."""
 
 from __future__ import annotations
 
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QButtonGroup, QRadioButton, QVBoxLayout, QWidget
 
 from baliza.dados.banco import BaseDeDados
+from baliza.interface.backup import PaginaBackup
 from baliza.interface.bancos import PaginaBancos
-from baliza.interface.componentes import Abas, aviso, cartao, mudar_aviso, texto
+from baliza.interface.componentes import Abas, cartao, confirmar_rapido, texto
 from baliza.interface.consulta import FORMATO_IMPRESSAO, FORMATOS, formato_escolhido
 
 EXPLICACOES = {
@@ -42,10 +44,6 @@ class PaginaImpressao(QWidget):
             explicacao.setContentsMargins(28, 0, 0, 6)
             interno.addWidget(explicacao)
         layout.addWidget(quadro)
-        self.retorno = aviso("", "sucesso")
-        self.retorno.setMaximumWidth(720)
-        self.retorno.setVisible(False)
-        layout.addWidget(self.retorno)
         layout.addStretch()
         self.opcoes[formato_escolhido(base)].setChecked(True)
         for chave, opcao in self.opcoes.items():
@@ -54,11 +52,12 @@ class PaginaImpressao(QWidget):
     def _escolher(self, formato: str) -> None:
         self.base.definir_configuracao(FORMATO_IMPRESSAO, formato)
         self.base.salvar()
-        mudar_aviso(self.retorno, f"Formato salvo: {FORMATOS[formato]}.", "sucesso")
-        self.retorno.setVisible(True)
+        confirmar_rapido(self, f"Formato salvo: {FORMATOS[formato]}.")
 
 
 class PaginaConfiguracoes(QWidget):
+    restaurado = Signal(object)
+
     def __init__(self, base: BaseDeDados) -> None:
         super().__init__()
         layout = QVBoxLayout(self)
@@ -68,6 +67,9 @@ class PaginaConfiguracoes(QWidget):
         self.abas = Abas()
         self.impressao = PaginaImpressao(base)
         self.bancos = PaginaBancos(base)
+        self.backup = PaginaBackup(base)
+        self.backup.restaurado.connect(self.restaurado.emit)
         self.abas.addTab(self.impressao, "Impressão")
+        self.abas.addTab(self.backup, "Backup")
         self.abas.addTab(self.bancos, "Bancos")
         layout.addWidget(self.abas, 1)

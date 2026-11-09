@@ -45,7 +45,9 @@ def test_area_fornecedores_mostra_a_lista(aplicacao, base):
     area.navegacao.botoes["fornecedores"].click()
     pagina = area.paginas.currentWidget()
     assert isinstance(pagina, PaginaFornecedores)
-    assert "Nenhum fornecedor cadastrado" in pagina.lista.vazia.text()
+    assert pagina.lista.vazia.titulo.text() == "Nenhum fornecedor cadastrado"
+    pagina.lista.vazia.acao.click()
+    assert pagina.currentWidget() is pagina.formulario
 
 
 def test_novo_fornecedor_pelo_formulario(aplicacao, base):
