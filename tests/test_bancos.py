@@ -52,7 +52,7 @@ def test_lista_oficial_nao_sobrescreve_banco_manual(base):
 
 def test_configuracoes_tem_a_aba_bancos(aplicacao, base):
     pagina = PaginaConfiguracoes(base)
-    assert pagina.abas.tabText(0) == "Bancos"
+    assert [pagina.abas.tabText(i) for i in range(2)] == ["Impressão", "Bancos"]
 
 
 def test_banco_manual_pela_tela(aplicacao, base, monkeypatch):

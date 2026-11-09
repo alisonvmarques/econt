@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from baliza.dados.banco import BaseDeDados
+from baliza.dados.entidade import obter_entidade
 from baliza.dados.fornecedores import (
     TIPOS_DE_CONTA,
     ChavePix,
@@ -66,6 +67,8 @@ from baliza.interface.componentes import (
     perguntar,
     texto,
 )
+from baliza.interface.impressao import abrir_janela_impressao
+from baliza.interface.impressoes import ficha_completa
 
 MARGENS = (40, 32, 40, 32)
 
@@ -511,9 +514,10 @@ class FichaFornecedor(QWidget):
         nomes.addLayout(linha_doc)
         topo.addLayout(nomes, 1)
         self.editar = botao("Editar")
+        self.imprimir = botao("Imprimir ficha")
         self.ativar = botao("Inativar", "perigo")
         self.excluir = botao("Excluir", "perigo")
-        for b in (self.editar, self.ativar, self.excluir):
+        for b in (self.editar, self.imprimir, self.ativar, self.excluir):
             topo.addWidget(b, 0, Qt.AlignmentFlag.AlignTop)
         layout.addLayout(topo)
 
@@ -569,6 +573,7 @@ class FichaFornecedor(QWidget):
 
         self.voltar.clicked.connect(self.voltar_lista.emit)
         self.editar.clicked.connect(lambda: self.editar_pedido.emit(self.fornecedor))
+        self.imprimir.clicked.connect(self.imprimir_ficha)
         self.ativar.clicked.connect(self._trocar_ativo)
         self.excluir.clicked.connect(self._excluir)
         self.nova_conta.clicked.connect(lambda: self.abrir_conta(None))
@@ -669,6 +674,19 @@ class FichaFornecedor(QWidget):
     def abrir_chave(self, chave: ChavePix | None) -> None:
         if self.criar_dialogo_chave(chave).exec():
             self.mostrar(self.fornecedor.id)
+
+    def imprimir_ficha(self) -> None:
+        """RF14 · Ficha completa em A4, com pré-visualização e opção de salvar em PDF."""
+        f = self.fornecedor
+        abrir_janela_impressao(
+            self,
+            ficha_completa(
+                f,
+                listar_contas_fornecedor(self.base.conexao, f.id),
+                listar_chaves(self.base.conexao, f.id),
+                obter_entidade(self.base.conexao),
+            ),
+        )
 
     def _trocar_ativo(self) -> None:
         f = self.fornecedor

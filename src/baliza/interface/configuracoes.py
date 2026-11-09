@@ -1,12 +1,61 @@
-"""Área Configurações. As abas de impressão, backup e senha chegam nas próximas versões."""
+"""Área Configurações: impressão (T22) e bancos (T24). Backup e senha chegam depois."""
 
 from __future__ import annotations
 
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QButtonGroup, QRadioButton, QVBoxLayout, QWidget
 
 from baliza.dados.banco import BaseDeDados
 from baliza.interface.bancos import PaginaBancos
-from baliza.interface.componentes import Abas, texto
+from baliza.interface.componentes import Abas, aviso, cartao, mudar_aviso, texto
+from baliza.interface.consulta import FORMATO_IMPRESSAO, FORMATOS, formato_escolhido
+
+EXPLICACOES = {
+    "folha_completa": "Folha A4 com dois fornecedores e a linha de corte no meio.",
+    "meia_folha": "A metade de uma A4 já cortada, colocada na impressora. Um fornecedor por vez.",
+}
+
+
+class PaginaImpressao(QWidget):
+    """RF19 · Formato da impressão dos dados para pagamento, salvo na hora."""
+
+    def __init__(self, base: BaseDeDados) -> None:
+        super().__init__()
+        self.base = base
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 20, 0, 0)
+        layout.setSpacing(12)
+        quadro = cartao()
+        quadro.setMaximumWidth(720)
+        interno = QVBoxLayout(quadro)
+        interno.setContentsMargins(24, 20, 24, 20)
+        interno.setSpacing(10)
+        interno.addWidget(texto("Formato dos dados para pagamento", "secao"))
+        interno.addWidget(texto("Vale para as próximas impressões feitas na Consulta.", "apoio"))
+        self.grupo = QButtonGroup(self)
+        self.opcoes: dict[str, QRadioButton] = {}
+        for chave, rotulo in FORMATOS.items():
+            opcao = QRadioButton(rotulo)
+            self.grupo.addButton(opcao)
+            self.opcoes[chave] = opcao
+            interno.addWidget(opcao)
+            explicacao = texto(EXPLICACOES[chave], "ajuda")
+            explicacao.setContentsMargins(28, 0, 0, 6)
+            interno.addWidget(explicacao)
+        layout.addWidget(quadro)
+        self.retorno = aviso("", "sucesso")
+        self.retorno.setMaximumWidth(720)
+        self.retorno.setVisible(False)
+        layout.addWidget(self.retorno)
+        layout.addStretch()
+        self.opcoes[formato_escolhido(base)].setChecked(True)
+        for chave, opcao in self.opcoes.items():
+            opcao.toggled.connect(lambda marcada, c=chave: marcada and self._escolher(c))
+
+    def _escolher(self, formato: str) -> None:
+        self.base.definir_configuracao(FORMATO_IMPRESSAO, formato)
+        self.base.salvar()
+        mudar_aviso(self.retorno, f"Formato salvo: {FORMATOS[formato]}.", "sucesso")
+        self.retorno.setVisible(True)
 
 
 class PaginaConfiguracoes(QWidget):
@@ -17,6 +66,8 @@ class PaginaConfiguracoes(QWidget):
         layout.setSpacing(16)
         layout.addWidget(texto("Configurações", "titulo"))
         self.abas = Abas()
+        self.impressao = PaginaImpressao(base)
         self.bancos = PaginaBancos(base)
+        self.abas.addTab(self.impressao, "Impressão")
         self.abas.addTab(self.bancos, "Bancos")
         layout.addWidget(self.abas, 1)
