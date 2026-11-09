@@ -30,6 +30,10 @@ dev = [
     "pytest>=8",
     "ruff>=0.6",
 ]
+empacotar = [
+    "pyinstaller>=6.10",
+    "pillow>=10",
+]
 
 [project.gui-scripts]
 baliza = "baliza.app:main"

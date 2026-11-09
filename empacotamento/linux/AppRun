@@ -1,0 +1,4 @@
+#!/bin/sh
+# Ponto de entrada do AppImage do Baliza.
+AQUI="$(dirname "$(readlink -f "$0")")"
+exec "$AQUI/usr/lib/baliza/Baliza" "$@"
