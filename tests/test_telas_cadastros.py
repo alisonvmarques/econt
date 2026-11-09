@@ -102,3 +102,13 @@ def test_sem_contas_da_entidade_explica_o_que_fazer(aplicacao, tmp_path):
     pagina.abrir_ficha(f)
     assert "Entidade › Contas" in pagina.ficha.aba_cadastros.vazia.text()
     assert itens_do_fornecedor(base.conexao, f) == []
+
+
+def test_colunas_na_mesma_ordem_da_consulta(aplicacao, cenario):
+    """A ordem é a de cadastro, como na Consulta e na impressão, não a alfabética."""
+    base, contas, f, pagina = cenario
+    cadastrar_conta(base.conexao, DadosConta("Conta Apoio", "001", "1234-5", "11111-1"))
+    pagina.abrir_ficha(f)
+    painel = pagina.ficha.aba_cadastros
+    cabecalho = [painel.tabela.horizontalHeaderItem(i).text() for i in range(1, 4)]
+    assert cabecalho == ["Conta Movimento", "Conta Saúde", "Conta Apoio"]

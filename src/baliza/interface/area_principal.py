@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QFontMetrics, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
@@ -35,6 +35,8 @@ AREAS = [
     ("configuracoes", "Configurações"),
 ]
 LARGURA_NAVEGACAO = 232
+# Largura da barra menos as margens, o logo e o espaço entre eles.
+LARGURA_NOME = LARGURA_NAVEGACAO - 12 * 2 - 8 - 32 - 12
 
 
 class PaginaEmConstrucao(QWidget):
@@ -55,6 +57,22 @@ DESCRICOES = {
     "entidade": "Os dados e as contas da entidade.",
     "configuracoes": "Bancos e, nas próximas versões, impressão, backup e senha.",
 }
+
+
+def em_duas_linhas(nome: str, medidas: QFontMetrics, largura: int) -> str:
+    """No máximo duas linhas, quebrando entre palavras; o que não cabe vira reticências
+    no fim da segunda linha. O nome inteiro fica na dica do rótulo."""
+    corte = Qt.TextElideMode.ElideRight
+    palavras = nome.split()
+    primeira = ""
+    while palavras and (
+        not primeira or medidas.horizontalAdvance(f"{primeira} {palavras[0]}") <= largura
+    ):
+        primeira = f"{primeira} {palavras.pop(0)}".strip()
+    primeira = medidas.elidedText(primeira, corte, largura)
+    if not palavras:
+        return primeira
+    return f"{primeira}\n{medidas.elidedText(' '.join(palavras), corte, largura)}"
 
 
 class Navegacao(QFrame):
@@ -78,6 +96,7 @@ class Navegacao(QFrame):
         nomes.setSpacing(0)
         self.nome_entidade = texto("Baliza")
         self.nome_entidade.setStyleSheet("font-weight: 500;")
+        self.nome_entidade.setWordWrap(False)  # as quebras são feitas por em_duas_linhas
         nomes.addWidget(self.nome_entidade)
         nomes.addWidget(texto("Baliza", "ajuda"))
         cabecalho.addWidget(self.logo)
@@ -107,7 +126,10 @@ class Navegacao(QFrame):
         if entidade is None:
             return
         nome = entidade.razao_social
-        self.nome_entidade.setText(nome if len(nome) <= 24 else nome[:23] + "…")
+        self.nome_entidade.ensurePolished()
+        self.nome_entidade.setText(
+            em_duas_linhas(nome, self.nome_entidade.fontMetrics(), LARGURA_NOME)
+        )
         self.nome_entidade.setToolTip(nome)
         self.logo.setPixmap(pixmap_do_logo(entidade.logo, 32))
 

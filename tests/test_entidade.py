@@ -5,7 +5,7 @@ from PySide6.QtGui import QColor, QImage
 
 from baliza.dados.banco import BaseDeDados
 from baliza.dados.entidade import Entidade, EntidadeInvalida, obter_entidade, salvar_entidade
-from baliza.interface.area_principal import AreaPrincipal
+from baliza.interface.area_principal import LARGURA_NOME, AreaPrincipal, em_duas_linhas
 from baliza.interface.entidade import LogoInvalido, PaginaEntidade, TelaDadosEntidade, preparar_logo
 from baliza.interface.impressao import html_chave_recuperacao, salvar_pdf
 from baliza.interface.janela_principal import JanelaPrincipal
@@ -66,7 +66,7 @@ def test_primeiro_uso_pede_a_entidade_antes_do_resto(aplicacao, tmp_path):
     assert tela.formulario.carregar_logo(_logo(tmp_path))
     tela.salvar.click()
     assert isinstance(janela.tela_atual(), AreaPrincipal)
-    assert janela.area.navegacao.nome_entidade.text() == "Fundo de Saúde Exemplo"
+    assert janela.area.navegacao.nome_entidade.text().replace("\n", " ") == "Fundo de Saúde Exemplo"
     assert not janela.area.navegacao.logo.pixmap().isNull()
     janela.close()
 
@@ -119,3 +119,23 @@ def test_logo_no_cabecalho_da_impressao(aplicacao, tmp_path):
     salvar_pdf(html, str(pdf_com), logo)
     salvar_pdf(html_chave_recuperacao("ABCD", datetime.now(), "Fundo", CNPJ), str(pdf_sem))
     assert pdf_com.stat().st_size > pdf_sem.stat().st_size
+
+
+def test_nome_longo_em_duas_linhas_com_reticencias(aplicacao, tmp_path):
+    base = _base(tmp_path)
+    nome = "Fundo Municipal de Saúde e Assistência Social Exemplo"
+    salvar_entidade(base.conexao, Entidade(nome, CNPJ))
+    area = AreaPrincipal(base)
+    rotulo = area.navegacao.nome_entidade
+    linhas = rotulo.text().split("\n")
+    assert len(linhas) == 2 and linhas[1].endswith("…")
+    assert all(rotulo.fontMetrics().horizontalAdvance(ln) <= LARGURA_NOME for ln in linhas)
+    assert rotulo.toolTip() == nome
+
+
+def test_nome_curto_fica_inteiro():
+    from PySide6.QtGui import QFont, QFontMetrics
+
+    medidas = QFontMetrics(QFont("Inter", 11))
+    assert em_duas_linhas("Fundo", medidas, LARGURA_NOME) == "Fundo"
+    assert "…" not in em_duas_linhas("Fundo de Saúde Exemplo", medidas, LARGURA_NOME)

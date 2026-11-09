@@ -72,7 +72,8 @@ class PainelCadastros(QWidget):
         self.fornecedor = fornecedor
         conexao = self.base.conexao
         todas_contas = listar_contas(conexao)
-        contas = [c for c in todas_contas if c.ativa]
+        # Mesma ordem de colunas da Consulta e da impressão: a ordem de cadastro.
+        contas = sorted((c for c in todas_contas if c.ativa), key=lambda c: c.id)
         todos_itens = itens_do_fornecedor(conexao, fornecedor.id)
         itens = [i for i in todos_itens if i.ativo]
         self.itens = itens
