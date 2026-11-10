@@ -5,7 +5,7 @@ import econt
 
 
 def test_versao_definida():
-    assert econt.__version__ == "0.8.0"
+    assert econt.__version__ == "0.8.1"
 
 
 def test_regras_e_dados_nao_dependem_da_interface():

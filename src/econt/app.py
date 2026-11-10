@@ -20,6 +20,9 @@ def icone_do_econt() -> QIcon:
 def criar_aplicacao(argumentos: list[str] | None = None) -> QApplication:
     aplicacao = QApplication.instance() or QApplication(argumentos or sys.argv)
     aplicacao.setApplicationName("ECont")
+    # No Linux, a barra de tarefas acha o ícone pelo atalho econt.desktop (Wayland usa este
+    # nome; o X11 usa o nome da aplicação, em StartupWMClass).
+    aplicacao.setDesktopFileName("econt")
     aplicacao.setApplicationVersion(__version__)
     aplicacao.setWindowIcon(icone_do_econt())
     return aplicacao

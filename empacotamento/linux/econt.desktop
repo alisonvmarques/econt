@@ -6,3 +6,4 @@ Exec=ECont
 Icon=econt
 Categories=Office;Finance;
 Terminal=false
+StartupWMClass=ECont

@@ -28,3 +28,15 @@ def test_erro_inesperado_em_portugues():
     assert "permissão" in mensagem_de_erro_inesperado(PermissionError(13, "denied"))
     assert mensagem_de_erro_inesperado(RuntimeError("x")) == MENSAGEM_DE_ERRO
     assert "continuam no arquivo" in MENSAGEM_DE_ERRO
+
+
+def test_barra_de_tarefas_acha_o_icone_pelo_atalho(aplicacao):
+    """Linux: o nome do atalho (Wayland) e a classe da janela (X11) batem com o .desktop."""
+    from pathlib import Path
+
+    from econt.app import criar_aplicacao
+
+    app = criar_aplicacao()
+    atalho = Path(__file__).parent.parent / "empacotamento" / "linux" / "econt.desktop"
+    assert app.desktopFileName() == atalho.stem
+    assert f"StartupWMClass={app.applicationName()}" in atalho.read_text(encoding="utf-8")
