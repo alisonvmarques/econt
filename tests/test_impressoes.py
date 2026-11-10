@@ -3,11 +3,11 @@ from datetime import datetime
 import pytest
 from PySide6.QtPdf import QPdfDocument
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.consulta import consultar
-from baliza.dados.contas import DadosConta, cadastrar_conta
-from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.consulta import consultar
+from econt.dados.contas import DadosConta, cadastrar_conta
+from econt.dados.entidade import Entidade, obter_entidade, salvar_entidade
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
@@ -18,9 +18,9 @@ from baliza.dados.fornecedores import (
     salvar_chave_pix,
     salvar_conta_fornecedor,
 )
-from baliza.dados.marcacoes import itens_do_fornecedor, marcar_todas
-from baliza.interface.impressao import JanelaImpressao, salvar_pdf_impressao
-from baliza.interface.impressoes import dados_para_pagamento, ficha_completa
+from econt.dados.marcacoes import itens_do_fornecedor, marcar_todas
+from econt.interface.impressao import JanelaImpressao, salvar_pdf_impressao
+from econt.interface.impressoes import dados_para_pagamento, ficha_completa
 
 SENHA = "fundo2026saude"
 QUANDO = datetime(2026, 11, 8, 19, 5)
@@ -28,7 +28,7 @@ QUANDO = datetime(2026, 11, 8, 19, 5)
 
 @pytest.fixture
 def cenario(tmp_path):
-    base = BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
     c = base.conexao
     salvar_entidade(c, Entidade("Fundo de Saúde Exemplo", "11.222.333/0001-81"))
     cadastrar_conta(c, DadosConta("Conta Movimento", "001", "1234-5", "55555-0"))
@@ -61,7 +61,7 @@ def desenhado(monkeypatch):
     O conteúdo é conferido aqui, antes de virar PDF: ler o texto de volta de um PDF depende
     do sistema (no Windows a leitura vem vazia, no macOS alguns números vêm trocados).
     """
-    from baliza.interface import impressao
+    from econt.interface import impressao
 
     textos = []
     original = impressao._documento_no
@@ -86,7 +86,7 @@ def test_folha_completa_com_dois_fornecedores_e_linha_de_corte(
     assert "Distribuidora Exemplo de Materiais Ltda" in tudo
     assert "Maria Exemplo da Silva" in tudo
     assert "corte aqui" in tudo
-    assert tudo.count("Emitido pelo Baliza em 08/11/2026 às 19:05") == 2
+    assert tudo.count("Emitido pelo ECont em 08/11/2026 às 19:05") == 2
     assert tudo.count("Fundo de Saúde Exemplo") == 2
 
 

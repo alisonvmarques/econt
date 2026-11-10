@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from baliza.dados.backup import (
+from econt.dados.backup import (
     BACKUP_AUTOMATICO,
     COPIAS,
     backup_ao_fechar,
@@ -13,9 +13,9 @@ from baliza.dados.backup import (
     pasta_de_backups,
     restaurar,
 )
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.cofre import SenhaIncorreta
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.cofre import SenhaIncorreta
+from econt.dados.fornecedores import (
     DadosFornecedor,
     cadastrar_fornecedor,
     listar_fornecedores,
@@ -27,7 +27,7 @@ INICIO = datetime(2026, 11, 8, 18, 0)
 
 @pytest.fixture
 def dados(tmp_path):
-    caminho = tmp_path / "dados" / "dados.baliza"
+    caminho = tmp_path / "dados" / "dados.econt"
     caminho.parent.mkdir()
     base, chave = BaseDeDados.criar(caminho, SENHA)
     cadastrar_fornecedor(base.conexao, DadosFornecedor("pf", "529.982.247-25", "Maria Exemplo"))
@@ -78,7 +78,7 @@ def test_exportar_para_outro_lugar(dados, tmp_path):
     _, caminho, _ = dados
     pendrive = tmp_path / "pendrive"
     feito = exportar(caminho, pendrive, INICIO)
-    assert feito == pendrive / "baliza-20261108-180000.baliza"
+    assert feito == pendrive / "econt-20261108-180000.econt"
     assert listar_backups(pendrive)[0].tamanho == caminho.stat().st_size
 
 
@@ -108,7 +108,7 @@ def test_restaurar_com_senha_errada_nao_muda_nada(dados):
 
 
 def test_tamanho_legivel(tmp_path):
-    from baliza.dados.backup import Backup
+    from econt.dados.backup import Backup
 
     assert Backup(tmp_path, INICIO, 184_000).tamanho_legivel == "180 KB"
     assert Backup(tmp_path, INICIO, 300).tamanho_legivel == "1 KB"

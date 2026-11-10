@@ -1,4 +1,4 @@
-"""Gera src/baliza/dados/recursos/bancos.csv a partir da lista oficial do Banco Central.
+"""Gera src/econt/dados/recursos/bancos.csv a partir da lista oficial do Banco Central.
 
 Uso:
     python scripts/atualizar_bancos.py caminho/para/ParticipantesSTR.csv
@@ -10,7 +10,7 @@ import csv
 import sys
 from pathlib import Path
 
-DESTINO = Path(__file__).resolve().parent.parent / "src/baliza/dados/recursos/bancos.csv"
+DESTINO = Path(__file__).resolve().parent.parent / "src/econt/dados/recursos/bancos.csv"
 
 
 def converter(origem: Path) -> list[tuple[str, str, str]]:

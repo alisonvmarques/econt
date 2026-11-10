@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta, listar_contas, obter_conta
-from baliza.dados.entidade import Entidade, salvar_entidade
-from baliza.dados.lista_bancos import cadastrar_banco_manual
-from baliza.interface import contas as telas_contas
-from baliza.interface.area_principal import AreaPrincipal
-from baliza.interface.contas import PaginaContas
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta, listar_contas, obter_conta
+from econt.dados.entidade import Entidade, salvar_entidade
+from econt.dados.lista_bancos import cadastrar_banco_manual
+from econt.interface import contas as telas_contas
+from econt.interface.area_principal import AreaPrincipal
+from econt.interface.contas import PaginaContas
 
 SENHA = "fundo2026saude"
 AGORA = datetime(2026, 11, 8, 10, 15)
@@ -16,7 +16,7 @@ AGORA = datetime(2026, 11, 8, 10, 15)
 
 @pytest.fixture
 def base(tmp_path):
-    base = BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
     salvar_entidade(base.conexao, Entidade("Fundo de Saúde Exemplo", "11.222.333/0001-81"))
     return base
 

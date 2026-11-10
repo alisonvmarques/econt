@@ -36,7 +36,7 @@ anexar ao processo de pagamento. O formato é escolhido em
 **Configurações › Impressão** (veja [Configurações](configuracoes.md)):
 
 - **Folha completa:** uma folha A4 tem espaço para dois fornecedores, com a linha de corte no
-  meio. Ao imprimir um fornecedor, o Baliza pergunta se imprime agora, com a metade de baixo em
+  meio. Ao imprimir um fornecedor, o ECont pergunta se imprime agora, com a metade de baixo em
   branco, ou se guarda para sair junto com o próximo fornecedor impresso.
 - **Meia folha:** para quem já deixa folhas A4 cortadas ao meio na impressora. Sai um
   fornecedor por vez.

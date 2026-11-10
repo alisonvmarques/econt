@@ -11,7 +11,7 @@ O formato dos dados para pagamento impressos na [Consulta](consulta.md#imprimir-
 
 ## Backup
 
-- **Backup automático:** ao fechar o Baliza, uma cópia dos dados vai para a pasta `backups`,
+- **Backup automático:** ao fechar o ECont, uma cópia dos dados vai para a pasta `backups`,
   ao lado do arquivo de dados. Fica ligado de fábrica.
 - **Quantas cópias guardar:** de 1 a 60 (7 de fábrica). As mais antigas são apagadas.
 - **Exportar backup…** salva uma cópia onde você escolher: um pendrive ou outro disco. Faça
@@ -24,5 +24,5 @@ Os backups são criptografados como o arquivo de dados.
 
 ## Bancos
 
-A lista oficial de bancos do Banco Central já vem no Baliza. **Cadastrar banco** é só para um
+A lista oficial de bancos do Banco Central já vem no ECont. **Cadastrar banco** é só para um
 banco que ainda não está na lista: informe o código e o nome.

@@ -1,8 +1,8 @@
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     ExclusaoNaoPermitida,
@@ -22,7 +22,7 @@ from baliza.dados.fornecedores import (
     salvar_chave_pix,
     salvar_conta_fornecedor,
 )
-from baliza.dominio.pix import ChaveInvalida
+from econt.dominio.pix import ChaveInvalida
 
 SENHA = "fundo2026saude"
 MATERIAIS = DadosFornecedor(
@@ -41,7 +41,7 @@ CONTA_BB = DadosContaFornecedor("001", "1234-5", "98765-4", "corrente")
 
 @pytest.fixture
 def base(tmp_path):
-    return BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    return BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
 
 
 def _marcar(base, conta_fornecedor_id=None, chave_pix_id=None):

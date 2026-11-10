@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- ECont: um E cujo traço do meio é a marca de conferido. -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#2E6A6E"/>
+  <path d="M176 68H84v120h92" fill="none" stroke="#FFFFFF" stroke-width="22"
+    stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M112 128l22 22 50-52" fill="none" stroke="#FFFFFF" stroke-width="22"
+    stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

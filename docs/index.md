@@ -1,10 +1,10 @@
-# Guia do Baliza
+# Guia do ECont
 
-O Baliza guarda as contas bancárias e as chaves Pix de cada fornecedor e registra em quais
+O ECont guarda as contas bancárias e as chaves Pix de cada fornecedor e registra em quais
 contas da entidade cada uma está cadastrada como favorecido no banco. Na hora de pagar, a
 Consulta mostra, para cada conta e chave, se o pagamento pode sair de cada conta da entidade.
 
-Tudo fica no seu computador, num arquivo protegido por senha. O Baliza não usa internet.
+Tudo fica no seu computador, num arquivo protegido por senha. O ECont não usa internet.
 
 ## Por onde começar
 

@@ -2,10 +2,10 @@ import time
 
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.consulta import FornecedorInativo, buscar, consultar
-from baliza.dados.contas import DadosConta, cadastrar_conta, definir_ativa
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.consulta import FornecedorInativo, buscar, consultar
+from econt.dados.contas import DadosConta, cadastrar_conta, definir_ativa
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
@@ -14,16 +14,16 @@ from baliza.dados.fornecedores import (
     salvar_chave_pix,
     salvar_conta_fornecedor,
 )
-from baliza.dados.marcacoes import definir_marcacao, itens_do_fornecedor
-from baliza.dominio.documentos import formatar_cnpj
-from baliza.dominio.texto import encontrar, normalizar
+from econt.dados.marcacoes import definir_marcacao, itens_do_fornecedor
+from econt.dominio.documentos import formatar_cnpj
+from econt.dominio.texto import encontrar, normalizar
 
 SENHA = "fundo2026saude"
 
 
 @pytest.fixture
 def base(tmp_path):
-    return BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    return BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
 
 
 def test_normalizar_tira_acentos_e_maiusculas_sem_mudar_o_tamanho():
@@ -117,7 +117,7 @@ def test_busca_em_menos_de_um_segundo_com_500_fornecedores(base):
 
 
 def _cnpj_valido(raiz: str) -> str:
-    from baliza.dominio.documentos import PESOS_CNPJ_1, PESOS_CNPJ_2, _digito
+    from econt.dominio.documentos import PESOS_CNPJ_1, PESOS_CNPJ_2, _digito
 
     valores = [int(n) for n in raiz]
     d1 = _digito(valores, PESOS_CNPJ_1)

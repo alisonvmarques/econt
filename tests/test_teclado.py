@@ -5,10 +5,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta, listar_contas, obter_conta
-from baliza.dados.entidade import Entidade, salvar_entidade
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta, listar_contas, obter_conta
+from econt.dados.entidade import Entidade, salvar_entidade
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
@@ -16,17 +16,17 @@ from baliza.dados.fornecedores import (
     listar_fornecedores,
     salvar_conta_fornecedor,
 )
-from baliza.dados.marcacoes import itens_do_fornecedor, marcacoes_do_item
-from baliza.interface.area_principal import AreaPrincipal
-from baliza.interface.contas import PaginaContas
-from baliza.interface.fornecedores import PaginaFornecedores
+from econt.dados.marcacoes import itens_do_fornecedor, marcacoes_do_item
+from econt.interface.area_principal import AreaPrincipal
+from econt.interface.contas import PaginaContas
+from econt.interface.fornecedores import PaginaFornecedores
 
 SENHA = "fundo2026saude"
 
 
 @pytest.fixture
 def base(tmp_path):
-    base = BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
     salvar_entidade(base.conexao, Entidade("Fundo de Saúde Exemplo", "11.222.333/0001-81"))
     return base
 

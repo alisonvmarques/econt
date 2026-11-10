@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from baliza.dominio.limites import (
+from econt.dominio.limites import (
     LIMITE_PADRAO,
     Pedido,
     PedidoInvalido,

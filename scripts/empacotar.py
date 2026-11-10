@@ -1,6 +1,6 @@
-"""Gera o instalador do Baliza para o sistema em que roda, e confere se ele abre (RNF10).
+"""Gera o instalador do ECont para o sistema em que roda, e confere se ele abre (RNF10).
 
-Uso, a partir da raiz do repositório, com o Baliza e as ferramentas instalados
+Uso, a partir da raiz do repositório, com o ECont e as ferramentas instalados
 (pip install -e ".[empacotar]"):
 
     python scripts/empacotar.py            # gera o instalador em dist/
@@ -24,12 +24,12 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 DIST = RAIZ / "dist"
 OBRA = RAIZ / "build"
-ICONE_SVG = RAIZ / "src" / "baliza" / "interface" / "icone.svg"
+ICONE_SVG = RAIZ / "src" / "econt" / "interface" / "icone.svg"
 EMPACOTAMENTO = RAIZ / "empacotamento"
 
 
 def versao() -> str:
-    from baliza import __version__
+    from econt import __version__
 
     return __version__
 
@@ -53,14 +53,14 @@ def gerar_icones() -> dict[str, Path]:
     pasta = OBRA / "icones"
     pasta.mkdir(parents=True, exist_ok=True)
     QApplication.instance() or QApplication([])
-    png = pasta / "baliza.png"
+    png = pasta / "econt.png"
     QIcon(str(ICONE_SVG)).pixmap(1024, 1024).save(str(png))
     imagem = Image.open(png)
-    ico = pasta / "baliza.ico"
+    ico = pasta / "econt.ico"
     imagem.save(
         ico, sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
     )
-    icns = pasta / "baliza.icns"
+    icns = pasta / "econt.icns"
     imagem.save(icns)
     return {"png": png, "ico": ico, "icns": icns}
 
@@ -72,11 +72,11 @@ def pyinstaller(icones: dict[str, Path]) -> None:
         "--noconfirm",
         "--clean",
         "--name",
-        "Baliza",
+        "ECont",
         "--windowed",
         "--onedir",
         "--collect-data",
-        "baliza",
+        "econt",
         "--icon",
         icone,
         "--distpath",
@@ -87,8 +87,8 @@ def pyinstaller(icones: dict[str, Path]) -> None:
         OBRA,
     ]
     if sistema() == "macos":
-        opcoes += ["--osx-bundle-identifier", "io.github.alisonvmarques.baliza"]
-    rodar(sys.executable, "-m", "PyInstaller", *opcoes, RAIZ / "src" / "baliza" / "__main__.py")
+        opcoes += ["--osx-bundle-identifier", "io.github.alisonvmarques.econt"]
+    rodar(sys.executable, "-m", "PyInstaller", *opcoes, RAIZ / "src" / "econt" / "__main__.py")
 
 
 def instalador_windows(icones: dict[str, Path]) -> Path:
@@ -96,28 +96,28 @@ def instalador_windows(icones: dict[str, Path]) -> Path:
     rodar(
         iscc,
         f"/DVersao={versao()}",
-        f"/DOrigem={DIST / 'Baliza'}",
+        f"/DOrigem={DIST / 'ECont'}",
         f"/DSaida={DIST}",
         f"/DIcone={icones['ico']}",
-        EMPACOTAMENTO / "windows" / "baliza.iss",
+        EMPACOTAMENTO / "windows" / "econt.iss",
     )
-    return DIST / f"Baliza-{versao()}-Windows-instalador.exe"
+    return DIST / f"ECont-{versao()}-Windows-instalador.exe"
 
 
 def instalador_macos() -> Path:
-    """Imagem .dmg com o Baliza.app e o atalho para Aplicativos, para arrastar."""
+    """Imagem .dmg com o ECont.app e o atalho para Aplicativos, para arrastar."""
     palco = OBRA / "dmg"
     shutil.rmtree(palco, ignore_errors=True)
     palco.mkdir(parents=True)
-    shutil.copytree(DIST / "Baliza.app", palco / "Baliza.app", symlinks=True)
+    shutil.copytree(DIST / "ECont.app", palco / "ECont.app", symlinks=True)
     (palco / "Aplicativos").symlink_to("/Applications")
-    saida = DIST / f"Baliza-{versao()}-macOS.dmg"
+    saida = DIST / f"ECont-{versao()}-macOS.dmg"
     saida.unlink(missing_ok=True)
     rodar(
         "hdiutil",
         "create",
         "-volname",
-        "Baliza",
+        "ECont",
         "-srcfolder",
         palco,
         "-ov",
@@ -130,16 +130,16 @@ def instalador_macos() -> Path:
 
 def instalador_linux(icones: dict[str, Path]) -> Path:
     """AppImage: um arquivo só, que roda sem instalar."""
-    appdir = OBRA / "Baliza.AppDir"
+    appdir = OBRA / "ECont.AppDir"
     shutil.rmtree(appdir, ignore_errors=True)
     (appdir / "usr" / "lib").mkdir(parents=True)
-    shutil.copytree(DIST / "Baliza", appdir / "usr" / "lib" / "baliza", symlinks=True)
+    shutil.copytree(DIST / "ECont", appdir / "usr" / "lib" / "econt", symlinks=True)
     shutil.copy(EMPACOTAMENTO / "linux" / "AppRun", appdir / "AppRun")
     (appdir / "AppRun").chmod(0o755)
-    shutil.copy(EMPACOTAMENTO / "linux" / "baliza.desktop", appdir / "baliza.desktop")
-    shutil.copy(icones["png"], appdir / "baliza.png")
+    shutil.copy(EMPACOTAMENTO / "linux" / "econt.desktop", appdir / "econt.desktop")
+    shutil.copy(icones["png"], appdir / "econt.png")
     ferramenta = os.environ.get("APPIMAGETOOL", "appimagetool")
-    saida = DIST / f"Baliza-{versao()}-Linux-x86_64.AppImage"
+    saida = DIST / f"ECont-{versao()}-Linux-x86_64.AppImage"
     ambiente = {**os.environ, "ARCH": "x86_64", "APPIMAGE_EXTRACT_AND_RUN": "1"}
     rodar(ferramenta, appdir, saida, env=ambiente)
     return saida
@@ -156,36 +156,36 @@ def empacotar() -> Path:
 
 
 def verificar() -> int:
-    """Instala (Windows), monta (macOS) ou roda (Linux) o instalador e abre o Baliza com
+    """Instala (Windows), monta (macOS) ou roda (Linux) o instalador e abre o ECont com
     --verificar. Imprime o relatório e devolve o código de saída do programa."""
     ambiente = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
     relatorio = Path(tempfile.mkdtemp()) / "relatorio.txt"
     montado = None
     try:
         if sistema() == "windows":
-            pasta = Path(tempfile.mkdtemp()) / "Baliza"
+            pasta = Path(tempfile.mkdtemp()) / "ECont"
             rodar(
-                DIST / f"Baliza-{versao()}-Windows-instalador.exe",
+                DIST / f"ECont-{versao()}-Windows-instalador.exe",
                 "/VERYSILENT",
                 "/SUPPRESSMSGBOXES",
                 "/NORESTART",
                 "/CURRENTUSER",
                 f"/DIR={pasta}",
             )
-            programa = pasta / "Baliza.exe"
+            programa = pasta / "ECont.exe"
         elif sistema() == "macos":
             montado = Path(tempfile.mkdtemp())
             rodar(
                 "hdiutil",
                 "attach",
-                DIST / f"Baliza-{versao()}-macOS.dmg",
+                DIST / f"ECont-{versao()}-macOS.dmg",
                 "-mountpoint",
                 montado,
                 "-nobrowse",
             )
-            programa = montado / "Baliza.app" / "Contents" / "MacOS" / "Baliza"
+            programa = montado / "ECont.app" / "Contents" / "MacOS" / "ECont"
         else:
-            programa = DIST / f"Baliza-{versao()}-Linux-x86_64.AppImage"
+            programa = DIST / f"ECont-{versao()}-Linux-x86_64.AppImage"
             ambiente["APPIMAGE_EXTRACT_AND_RUN"] = "1"
         resultado = subprocess.run(
             [str(programa), "--verificar", str(relatorio)], env=ambiente, timeout=180

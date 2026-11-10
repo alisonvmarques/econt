@@ -1,6 +1,6 @@
 import pytest
 
-from baliza.dominio.documentos import (
+from econt.dominio.documentos import (
     cnpj_valido,
     cpf_valido,
     formatar_cnpj,
@@ -64,7 +64,7 @@ def test_formatacao():
     ],
 )
 def test_mensagem_clara_do_documento_errado(tipo, documento, mensagem):
-    from baliza.dominio.documentos import problema_do_documento
+    from econt.dominio.documentos import problema_do_documento
 
     assert problema_do_documento(tipo, documento) == mensagem
 
@@ -74,6 +74,6 @@ def test_mensagem_clara_do_documento_errado(tipo, documento, mensagem):
     [("pf", "529.982.247-25"), ("pj", "11.222.333/0001-81"), ("pj", "12.ABC.345/01DE-35")],
 )
 def test_documento_certo_nao_tem_mensagem(tipo, documento):
-    from baliza.dominio.documentos import problema_do_documento
+    from econt.dominio.documentos import problema_do_documento
 
     assert problema_do_documento(tipo, documento) is None

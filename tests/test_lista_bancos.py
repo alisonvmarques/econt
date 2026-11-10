@@ -1,7 +1,7 @@
 import sqlite3
 
-from baliza.dados.banco import MIGRACOES
-from baliza.dados.lista_bancos import bancos_oficiais, carregar_bancos_oficiais
+from econt.dados.banco import MIGRACOES
+from econt.dados.lista_bancos import bancos_oficiais, carregar_bancos_oficiais
 
 
 def _base_vazia():

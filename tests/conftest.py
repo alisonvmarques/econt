@@ -9,7 +9,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 @pytest.fixture(scope="session")
 def _aplicacao_da_sessao():
-    from baliza.app import criar_aplicacao
+    from econt.app import criar_aplicacao
 
     return criar_aplicacao([])
 

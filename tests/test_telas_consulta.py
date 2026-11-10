@@ -2,10 +2,10 @@ import pytest
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta
-from baliza.dados.entidade import Entidade, salvar_entidade
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta
+from econt.dados.entidade import Entidade, salvar_entidade
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
@@ -13,19 +13,19 @@ from baliza.dados.fornecedores import (
     salvar_chave_pix,
     salvar_conta_fornecedor,
 )
-from baliza.dados.marcacoes import itens_do_fornecedor, marcar_todas
-from baliza.interface import consulta as telas
-from baliza.interface import fornecedores as telas_fornecedores
-from baliza.interface.area_principal import AreaPrincipal
-from baliza.interface.configuracoes import PaginaConfiguracoes
-from baliza.interface.consulta import PaginaConsulta, formato_escolhido
+from econt.dados.marcacoes import itens_do_fornecedor, marcar_todas
+from econt.interface import consulta as telas
+from econt.interface import fornecedores as telas_fornecedores
+from econt.interface.area_principal import AreaPrincipal
+from econt.interface.configuracoes import PaginaConfiguracoes
+from econt.interface.consulta import PaginaConsulta, formato_escolhido
 
 SENHA = "fundo2026saude"
 
 
 @pytest.fixture
 def cenario(tmp_path):
-    base = BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
     c = base.conexao
     salvar_entidade(c, Entidade("Fundo de Saúde Exemplo", "11.222.333/0001-81"))
     cadastrar_conta(c, DadosConta("Conta Movimento", "001", "1234-5", "55555-0"))
@@ -167,7 +167,7 @@ def test_ficha_imprime_a_ficha_completa(aplicacao, cenario, monkeypatch):
 
 
 def _confirmacao(widget) -> str:
-    from baliza.interface.componentes import Confirmacao
+    from econt.interface.componentes import Confirmacao
 
     confirmacao = widget.window().findChild(Confirmacao, "confirmacao")
     return confirmacao.text() if confirmacao and confirmacao.isVisibleTo(widget.window()) else ""

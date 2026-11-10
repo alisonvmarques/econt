@@ -1,6 +1,6 @@
 # Entidade
 
-A entidade é quem paga. O Baliza cadastra uma única entidade.
+A entidade é quem paga. O ECont cadastra uma única entidade.
 
 ## Dados
 

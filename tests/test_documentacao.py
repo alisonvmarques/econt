@@ -72,7 +72,7 @@ def test_toda_captura_e_usada_e_toda_pagina_esta_no_site():
 
 def test_readme_diz_o_que_e_como_instalar_licenca_e_contribuicao():
     readme = (RAIZ / "README.md").read_text(encoding="utf-8")
-    for secao in ("## Para quem é", "## O que o Baliza faz", "## Instalação", "## Licença"):
+    for secao in ("## Para quem é", "## O que o ECont faz", "## Instalação", "## Licença"):
         assert secao in readme
     for sistema in ("Windows", "Linux", "macOS"):
         assert sistema in readme
@@ -83,5 +83,5 @@ def test_readme_diz_o_que_e_como_instalar_licenca_e_contribuicao():
 def test_capturas_so_com_dados_ficticios():
     """O script das capturas cria os próprios dados numa pasta temporária."""
     script = (RAIZ / "scripts" / "capturas.py").read_text(encoding="utf-8")
-    assert "TemporaryDirectory" in script and "BALIZA_ARQUIVO" in script
+    assert "TemporaryDirectory" in script and "ECONT_ARQUIVO" in script
     assert "caminho_padrao" not in script

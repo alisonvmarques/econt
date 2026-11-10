@@ -1,19 +1,19 @@
 # Primeiros passos
 
-Na primeira vez que abre, o Baliza pede três coisas, nesta ordem.
+Na primeira vez que abre, o ECont pede três coisas, nesta ordem.
 
 ## 1. Criar a senha
 
-A senha protege o arquivo de dados e é pedida toda vez que o Baliza abre. Precisa ter pelo
+A senha protege o arquivo de dados e é pedida toda vez que o ECont abre. Precisa ter pelo
 menos 10 caracteres, com letras e números.
 
 ## 2. Guardar a chave de recuperação
 
-Em seguida o Baliza mostra a chave de recuperação. Ela é a única forma de entrar se a senha
+Em seguida o ECont mostra a chave de recuperação. Ela é a única forma de entrar se a senha
 for esquecida: sem a senha e sem a chave, ninguém abre os dados, nem quem fez o sistema.
 
 Imprima a chave ou salve em PDF e guarde fora do computador, num lugar seguro. Só depois
-clique em **Continuar**. Se o Baliza for fechado antes disso, ele gera uma chave nova na
+clique em **Continuar**. Se o ECont for fechado antes disso, ele gera uma chave nova na
 próxima vez e a anterior deixa de valer.
 
 ## 3. Dados da entidade

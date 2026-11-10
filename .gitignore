@@ -9,9 +9,10 @@ __pycache__/
 build/
 dist/
 
-# Dados do Baliza: nunca vão para o repositório
+# Dados do ECont: nunca vão para o repositório
+*.econt
+*.econt.tmp
 *.baliza
-*.baliza.tmp
 /backups/
 /dados/
 

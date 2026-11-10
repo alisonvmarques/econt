@@ -14,20 +14,20 @@ quando você ainda tinha a senha anotada, ele pode ser restaurado com aquela sen
 
 Use **Esqueci a senha** na tela de entrada, com a chave de recuperação.
 
-## O Baliza precisa de internet?
+## O ECont precisa de internet?
 
 Não. Nada sai do computador: não há conta, nuvem, e-mail nem atualização automática.
 
 ## Como levo os dados para outro computador?
 
 Em **Configurações › Backup**, clique em **Exportar backup…** e salve num pendrive. No outro
-computador, instale o Baliza e faça o primeiro acesso (senha, chave e entidade). Depois, em
+computador, instale o ECont e faça o primeiro acesso (senha, chave e entidade). Depois, em
 **Configurações › Backup**, use **Restaurar backup…** com o arquivo do pendrive e a senha
 dos dados originais. A partir daí, valem a senha e a chave dos dados originais.
 
 ## Por que a conta aparece como "Não cadastrada" se já paguei por ela?
 
-O Baliza mostra o que foi marcado na aba **Cadastros** do fornecedor. Se o favorecido já está
+O ECont mostra o que foi marcado na aba **Cadastros** do fornecedor. Se o favorecido já está
 cadastrado no banco, marque a caixa da conta da entidade correspondente.
 
 ## Posso apagar um fornecedor?
@@ -39,6 +39,12 @@ histórico fica guardado e pode ser reativado.
 
 A lista vem do Banco Central. Se um banco novo ainda não estiver nela, cadastre em
 **Configurações › Bancos › Cadastrar banco**.
+
+## Eu usava o sistema quando ele se chamava Baliza.
+
+Basta instalar e abrir o ECont: ele copia os dados e os backups da pasta antiga e entra com a
+mesma senha. Backups antigos (arquivos `.baliza`) também podem ser restaurados em
+**Configurações › Backup**. Veja [Instalação](instalacao.md#onde-ficam-os-dados).
 
 ## Onde está o arquivo de dados?
 

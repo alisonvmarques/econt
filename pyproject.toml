@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "baliza"
-version = "0.7.0"
+name = "econt"
+version = "0.8.0"
 description = "Sistema desktop e offline para conferir as contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -36,13 +36,13 @@ empacotar = [
 ]
 
 [project.gui-scripts]
-baliza = "baliza.app:main"
+econt = "econt.app:main"
 
 [project.urls]
-"Repositório" = "https://github.com/alisonvmarques/baliza"
+"Repositório" = "https://github.com/alisonvmarques/econt"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/baliza"]
+packages = ["src/econt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

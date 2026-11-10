@@ -2,22 +2,22 @@ import sqlite3
 
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.lista_bancos import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.lista_bancos import (
     BancoInvalido,
     cadastrar_banco_manual,
     listar_bancos,
     obter_banco,
 )
-from baliza.interface.bancos import PaginaBancos
-from baliza.interface.configuracoes import PaginaConfiguracoes
+from econt.interface.bancos import PaginaBancos
+from econt.interface.configuracoes import PaginaConfiguracoes
 
 SENHA = "fundo2026saude"
 
 
 @pytest.fixture
 def base(tmp_path):
-    return BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    return BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
 
 
 def test_banco_manual_entra_na_lista(base):
@@ -43,7 +43,7 @@ def test_banco_manual_nao_repete_codigo(base):
 
 
 def test_lista_oficial_nao_sobrescreve_banco_manual(base):
-    from baliza.dados.lista_bancos import carregar_bancos_oficiais
+    from econt.dados.lista_bancos import carregar_bancos_oficiais
 
     cadastrar_banco_manual(base.conexao, "999", "Banco Fictício Cooperativo")
     carregar_bancos_oficiais(base.conexao)

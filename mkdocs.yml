@@ -1,6 +1,6 @@
 # Site da documentação. Para ver no navegador: pip install mkdocs && mkdocs serve
-site_name: Baliza
-site_description: Guia de uso do Baliza
+site_name: ECont
+site_description: Guia de uso do ECont
 docs_dir: docs
 theme:
   name: mkdocs

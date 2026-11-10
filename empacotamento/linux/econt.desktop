@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ECont
+Comment=Contas e chaves Pix dos fornecedores, conferidas antes de pagar
+Exec=ECont
+Icon=econt
+Categories=Office;Finance;
+Terminal=false

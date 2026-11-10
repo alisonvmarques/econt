@@ -3,12 +3,12 @@ import sqlite3
 import pytest
 from PySide6.QtGui import QColor, QImage
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.entidade import Entidade, EntidadeInvalida, obter_entidade, salvar_entidade
-from baliza.interface.area_principal import LARGURA_NOME, AreaPrincipal, em_duas_linhas
-from baliza.interface.entidade import LogoInvalido, PaginaEntidade, TelaDadosEntidade, preparar_logo
-from baliza.interface.impressao import html_chave_recuperacao, salvar_pdf
-from baliza.interface.janela_principal import JanelaPrincipal
+from econt.dados.banco import BaseDeDados
+from econt.dados.entidade import Entidade, EntidadeInvalida, obter_entidade, salvar_entidade
+from econt.interface.area_principal import LARGURA_NOME, AreaPrincipal, em_duas_linhas
+from econt.interface.entidade import LogoInvalido, PaginaEntidade, TelaDadosEntidade, preparar_logo
+from econt.interface.impressao import html_chave_recuperacao, salvar_pdf
+from econt.interface.janela_principal import JanelaPrincipal
 
 SENHA = "fundo2026saude"
 CNPJ = "11.222.333/0001-81"
@@ -23,7 +23,7 @@ def _logo(tmp_path, lado=600):
 
 
 def _base(tmp_path):
-    return BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    return BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
 
 
 def test_uma_unica_entidade(tmp_path):
@@ -45,7 +45,7 @@ def test_cnpj_invalido_nao_e_salvo(tmp_path):
 
 
 def test_primeiro_uso_pede_a_entidade_antes_do_resto(aplicacao, tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     janela = JanelaPrincipal(caminho)
     tela = janela.tela_atual()
     tela.senha.definir(SENHA)
@@ -115,7 +115,7 @@ def test_logo_no_cabecalho_da_impressao(aplicacao, tmp_path):
     html = html_chave_recuperacao(
         "ABCD-EFGH-JKLM-NPQR-STUV-WXYZ", datetime.now(), "Fundo", CNPJ, True
     )
-    assert 'src="baliza://logo"' in html
+    assert 'src="econt://logo"' in html
     pdf_com = tmp_path / "com.pdf"
     pdf_sem = tmp_path / "sem.pdf"
     salvar_pdf(html, str(pdf_com), logo)

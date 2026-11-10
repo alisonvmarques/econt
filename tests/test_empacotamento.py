@@ -16,7 +16,7 @@ def _script():
 
 
 def test_nomes_dos_instaladores_levam_a_versao():
-    from baliza import __version__
+    from econt import __version__
 
     empacotar = _script()
     assert empacotar.versao() == __version__
@@ -25,17 +25,17 @@ def test_nomes_dos_instaladores_levam_a_versao():
 
 
 def test_instalador_windows_em_portugues_e_sem_administrador():
-    iss = (RAIZ / "empacotamento" / "windows" / "baliza.iss").read_text(encoding="utf-8")
+    iss = (RAIZ / "empacotamento" / "windows" / "econt.iss").read_text(encoding="utf-8")
     assert "PrivilegesRequired=lowest" in iss
     assert "BrazilianPortuguese.isl" in iss
-    assert "OutputBaseFilename=Baliza-{#Versao}-Windows-instalador" in iss
+    assert "OutputBaseFilename=ECont-{#Versao}-Windows-instalador" in iss
 
 
 def test_appimage_aponta_para_o_programa():
     apprun = (RAIZ / "empacotamento" / "linux" / "AppRun").read_text(encoding="utf-8")
-    desktop = (RAIZ / "empacotamento" / "linux" / "baliza.desktop").read_text(encoding="utf-8")
-    assert "usr/lib/baliza/Baliza" in apprun
-    assert "Icon=baliza" in desktop and "Name=Baliza" in desktop
+    desktop = (RAIZ / "empacotamento" / "linux" / "econt.desktop").read_text(encoding="utf-8")
+    assert "usr/lib/econt/ECont" in apprun
+    assert "Icon=econt" in desktop and "Name=ECont" in desktop
 
 
 def test_workflow_gera_e_confere_nos_tres_sistemas():

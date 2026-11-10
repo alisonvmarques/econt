@@ -1,8 +1,8 @@
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta, definir_ativa
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta, definir_ativa
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
@@ -10,16 +10,16 @@ from baliza.dados.fornecedores import (
     salvar_chave_pix,
     salvar_conta_fornecedor,
 )
-from baliza.dados.marcacoes import itens_do_fornecedor, marcacoes_do_item
-from baliza.interface import cadastros as telas
-from baliza.interface.fornecedores import PaginaFornecedores
+from econt.dados.marcacoes import itens_do_fornecedor, marcacoes_do_item
+from econt.interface import cadastros as telas
+from econt.interface.fornecedores import PaginaFornecedores
 
 SENHA = "fundo2026saude"
 
 
 @pytest.fixture
 def cenario(tmp_path):
-    base = BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
     c = base.conexao
     contas = [
         cadastrar_conta(c, DadosConta(nome, "001", "1234-5", numero))
@@ -96,7 +96,7 @@ def test_conta_da_entidade_inativa_some_da_grade(aplicacao, cenario):
 
 
 def test_sem_contas_da_entidade_explica_o_que_fazer(aplicacao, tmp_path):
-    base = BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
     f = cadastrar_fornecedor(base.conexao, DadosFornecedor("pf", "529.982.247-25", "Maria"))
     pagina = PaginaFornecedores(base)
     pagina.abrir_ficha(f)

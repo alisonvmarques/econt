@@ -1,4 +1,4 @@
-from baliza.dominio.senha import mensagem_senha_fraca, problemas_da_senha
+from econt.dominio.senha import mensagem_senha_fraca, problemas_da_senha
 
 
 def test_senha_forte_e_aceita():

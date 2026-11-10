@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 
-from baliza.interface.area_principal import AREAS, AreaPrincipal
+from econt.interface.area_principal import AREAS, AreaPrincipal
 
 
 def test_cinco_areas_e_inicio_destacado(aplicacao):

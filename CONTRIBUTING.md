@@ -1,6 +1,6 @@
 # Como contribuir
 
-Obrigado pelo interesse. O Baliza é pequeno de propósito: um sistema offline, em português,
+Obrigado pelo interesse. O ECont é pequeno de propósito: um sistema offline, em português,
 para conferir contas de fornecedores antes de pagar.
 
 ## Antes de começar
@@ -8,7 +8,7 @@ para conferir contas de fornecedores antes de pagar.
 - Abra uma issue descrevendo o problema ou a ideia antes de um pull request grande.
 - Nunca use dados reais em issues, testes, capturas de tela ou exemplos: só dados fictícios
   (os CNPJs e contas dos testes são inventados).
-- O Baliza não acessa a internet. Mudanças que mandem dados para fora do computador não
+- O ECont não acessa a internet. Mudanças que mandem dados para fora do computador não
   serão aceitas.
 
 ## Preparar o ambiente

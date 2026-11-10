@@ -37,7 +37,7 @@ não pede confirmação, porque não perde nada.
 - Todas as mensagens estão em português e dizem o que corrigir, com um exemplo quando ajuda
   ("Informe a conta com o dígito depois do traço, assim: 77777-3.").
 - Os erros de formulário aparecem no próprio campo, com borda e texto, nunca só pela cor.
-- Erro inesperado (por exemplo, disco cheio na hora de gravar) não fecha o Baliza sem
+- Erro inesperado (por exemplo, disco cheio na hora de gravar) não fecha o ECont sem
   explicação: aparece uma mensagem em português dizendo o que houve e que os dados gravados
   antes continuam no arquivo. Os detalhes técnicos ficam num botão, para quem precisar.
 

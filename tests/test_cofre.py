@@ -1,6 +1,6 @@
 import pytest
 
-from baliza.dados.cofre import (
+from econt.dados.cofre import (
     ArquivoInvalido,
     ChaveIncorreta,
     Cofre,
@@ -12,13 +12,13 @@ SENHA = "senha-de-teste-123"
 
 
 def test_texto_gravado_nao_aparece_no_arquivo(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     Cofre.criar(caminho, SENHA, b"Distribuidora Exemplo de Materiais Ltda")
     assert b"Distribuidora Exemplo" not in caminho.read_bytes()
 
 
 def test_abre_com_a_senha_e_com_a_chave(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     _, chave = Cofre.criar(caminho, SENHA, b"conteudo")
     assert Cofre.abrir_com_senha(caminho, SENHA).ler() == b"conteudo"
     assert Cofre.abrir_com_chave(caminho, chave).ler() == b"conteudo"
@@ -26,21 +26,21 @@ def test_abre_com_a_senha_e_com_a_chave(tmp_path):
 
 
 def test_senha_errada_falha_com_mensagem_em_portugues(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     Cofre.criar(caminho, SENHA)
     with pytest.raises(SenhaIncorreta, match="Senha incorreta"):
         Cofre.abrir_com_senha(caminho, "outra-senha")
 
 
 def test_chave_errada_falha(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     Cofre.criar(caminho, SENHA)
     with pytest.raises(ChaveIncorreta):
         Cofre.abrir_com_chave(caminho, gerar_chave_recuperacao())
 
 
 def test_trocar_senha_mantem_os_dados_e_a_chave(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     cofre, chave = Cofre.criar(caminho, SENHA, b"conteudo")
     cofre.trocar_senha("nova-senha-456")
     with pytest.raises(SenhaIncorreta):
@@ -50,7 +50,7 @@ def test_trocar_senha_mantem_os_dados_e_a_chave(tmp_path):
 
 
 def test_nova_chave_invalida_a_anterior(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     cofre, antiga = Cofre.criar(caminho, SENHA)
     nova = cofre.gerar_nova_chave()
     with pytest.raises(ChaveIncorreta):
@@ -58,9 +58,9 @@ def test_nova_chave_invalida_a_anterior(tmp_path):
     Cofre.abrir_com_chave(caminho, nova)
 
 
-def test_arquivo_que_nao_e_do_baliza(tmp_path):
-    caminho = tmp_path / "qualquer.baliza"
-    caminho.write_bytes(b"isto nao e um arquivo do baliza")
+def test_arquivo_que_nao_e_do_econt(tmp_path):
+    caminho = tmp_path / "qualquer.econt"
+    caminho.write_bytes(b"isto nao e um arquivo do econt")
     with pytest.raises(ArquivoInvalido):
         Cofre.abrir_com_senha(caminho, SENHA)
 

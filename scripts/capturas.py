@@ -16,23 +16,23 @@ from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication
 
-from baliza.app import criar_aplicacao
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta, registrar_pedido
-from baliza.dados.entidade import Entidade, salvar_entidade
-from baliza.dados.fornecedores import (
+from econt.app import criar_aplicacao
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta, registrar_pedido
+from econt.dados.entidade import Entidade, salvar_entidade
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
     salvar_chave_pix,
     salvar_conta_fornecedor,
 )
-from baliza.dados.marcacoes import definir_marcacao, itens_do_fornecedor, marcar_todas
-from baliza.dominio.documentos import cnpj_valido, formatar_cnpj
+from econt.dados.marcacoes import definir_marcacao, itens_do_fornecedor, marcar_todas
+from econt.dominio.documentos import cnpj_valido, formatar_cnpj
 
 RAIZ = Path(__file__).resolve().parent.parent
 DESTINO = RAIZ / "docs" / "imagens"
-SENHA = "exemplo2026baliza"
+SENHA = "exemplo2026econt"
 
 
 def cnpj(base: str) -> str:
@@ -106,11 +106,11 @@ def main() -> int:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     DESTINO.mkdir(parents=True, exist_ok=True)
     aplicacao = criar_aplicacao([sys.argv[0]])
-    from baliza.interface.janela_principal import JanelaPrincipal
+    from econt.interface.janela_principal import JanelaPrincipal
 
     with tempfile.TemporaryDirectory() as pasta:
-        caminho = Path(pasta) / "dados.baliza"
-        os.environ["BALIZA_ARQUIVO"] = str(caminho)
+        caminho = Path(pasta) / "dados.econt"
+        os.environ["ECONT_ARQUIVO"] = str(caminho)
         base = dados_de_exemplo(caminho)
         base.fechar()
 

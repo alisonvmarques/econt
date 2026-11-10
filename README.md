@@ -1,11 +1,11 @@
-# Baliza
+# ECont
 
-[![Testes](https://github.com/alisonvmarques/baliza/actions/workflows/testes.yml/badge.svg)](https://github.com/alisonvmarques/baliza/actions/workflows/testes.yml)
+[![Testes](https://github.com/alisonvmarques/econt/actions/workflows/testes.yml/badge.svg)](https://github.com/alisonvmarques/econt/actions/workflows/testes.yml)
 
-Sistema desktop e offline para conferir as contas dos fornecedores e em quais contas da
-entidade estão cadastradas antes de pagar.
+Conferência de contas: sistema desktop e offline para conferir as contas dos fornecedores e
+em quais contas da entidade estão cadastradas antes de pagar.
 
-> Versão atual: 0.7 · Painel e backup.
+> Versão atual: 0.8 · Novo nome: ECont.
 
 ![Consulta de um fornecedor](docs/imagens/consulta-resultado.png)
 
@@ -14,9 +14,9 @@ entidade estão cadastradas antes de pagar.
 Para o setor financeiro de entidades que pagam fornecedores por mais de uma conta bancária.
 No banco, cada conta da entidade
 tem a sua lista de favorecidos: o pagamento só sai para quem está cadastrado naquela conta. O
-Baliza registra essa situação e mostra, antes de pagar, de quais contas o pagamento pode sair.
+ECont registra essa situação e mostra, antes de pagar, de quais contas o pagamento pode sair.
 
-## O que o Baliza faz
+## O que o ECont faz
 
 - Guarda as contas bancárias e as chaves Pix de cada fornecedor, conferindo CNPJ, CPF,
   agência, conta e chave.
@@ -32,13 +32,13 @@ Baliza registra essa situação e mostra, antes de pagar, de quais contas o paga
 ## Instalação
 
 Baixe o instalador na página de
-[versões](https://github.com/alisonvmarques/baliza/releases):
+[versões](https://github.com/alisonvmarques/econt/releases):
 
 | Sistema | Arquivo |
 |---|---|
-| Windows 10 ou 11 | `Baliza-<versão>-Windows-instalador.exe` |
-| Linux (x86_64) | `Baliza-<versão>-Linux-x86_64.AppImage` |
-| macOS | `Baliza-<versão>-macOS.dmg` |
+| Windows 10 ou 11 | `ECont-<versão>-Windows-instalador.exe` |
+| Linux (x86_64) | `ECont-<versão>-Linux-x86_64.AppImage` |
+| macOS | `ECont-<versão>-macOS.dmg` |
 
 O passo a passo de cada sistema, inclusive os avisos de segurança na primeira vez, está em
 [Instalação](docs/instalacao.md).
@@ -68,7 +68,7 @@ source .venv/bin/activate        # no Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 pytest                           # testes
 ruff check . && ruff format --check .   # verificação do código
-baliza                           # abre o sistema
+econt                           # abre o sistema
 ```
 
 Os testes rodam no GitHub Actions em Windows, Linux e macOS a cada envio. Veja

@@ -50,31 +50,31 @@ jobs:
             choco install innosetup -y --no-progress
           }
 
-      - name: Instalar o Baliza e as ferramentas de empacotamento
+      - name: Instalar o ECont e as ferramentas de empacotamento
         run: |
           python -m pip install --upgrade pip
           pip install ".[empacotar]"
 
-      - name: A versão da tag é a versão do Baliza
+      - name: A versão da tag é a versão do ECont
         if: github.ref_type == 'tag'
         shell: bash
         run: |
-          versao=$(python -c "import baliza; print(baliza.__version__)")
+          versao=$(python -c "import econt; print(econt.__version__)")
           test "v$versao" = "${GITHUB_REF_NAME}" || {
-            echo "A tag ${GITHUB_REF_NAME} não bate com a versão $versao do Baliza."; exit 1; }
+            echo "A tag ${GITHUB_REF_NAME} não bate com a versão $versao do ECont."; exit 1; }
 
       - name: Gerar o instalador
         run: python scripts/empacotar.py
 
-      - name: Instalar e abrir o Baliza para conferir
+      - name: Instalar e abrir o ECont para conferir
         run: python scripts/empacotar.py verificar
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Baliza-${{ runner.os }}
+          name: ECont-${{ runner.os }}
           path: |
-            dist/Baliza-*.exe
-            dist/Baliza-*.dmg
-            dist/Baliza-*.AppImage
+            dist/ECont-*.exe
+            dist/ECont-*.dmg
+            dist/ECont-*.AppImage
           if-no-files-found: error
           retention-days: 30

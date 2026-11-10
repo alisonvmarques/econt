@@ -1,8 +1,8 @@
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta
-from baliza.dados.fornecedores import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta
+from econt.dados.fornecedores import (
     DadosContaFornecedor,
     DadosFornecedor,
     cadastrar_fornecedor,
@@ -12,9 +12,9 @@ from baliza.dados.fornecedores import (
     obter_fornecedor,
     salvar_conta_fornecedor,
 )
-from baliza.interface import fornecedores as telas
-from baliza.interface.area_principal import AreaPrincipal
-from baliza.interface.fornecedores import PaginaFornecedores
+from econt.interface import fornecedores as telas
+from econt.interface.area_principal import AreaPrincipal
+from econt.interface.fornecedores import PaginaFornecedores
 
 SENHA = "fundo2026saude"
 MATERIAIS = DadosFornecedor(
@@ -31,7 +31,7 @@ MARIA = DadosFornecedor("pf", "529.982.247-25", "Maria Exemplo da Silva")
 
 @pytest.fixture
 def base(tmp_path):
-    return BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    return BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
 
 
 def _sem_janela(dialogo):

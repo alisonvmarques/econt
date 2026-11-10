@@ -35,7 +35,7 @@ pré-visualização e opção de salvar em PDF.
 - **Nova chave Pix:** CNPJ, CPF, e-mail, telefone ou aleatória. A chave de CNPJ ou CPF tem de
   ser o documento do próprio fornecedor; o telefone precisa ser do Brasil.
 
-Se a mesma conta ou chave já estiver em outro fornecedor, o Baliza avisa quem é. Para gravar
+Se a mesma conta ou chave já estiver em outro fornecedor, o ECont avisa quem é. Para gravar
 mesmo assim, clique uma segunda vez em **Salvar mesmo assim**.
 
 Clique numa conta ou chave para editar, excluir ou inativar.

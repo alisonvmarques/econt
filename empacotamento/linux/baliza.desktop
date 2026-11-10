@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Baliza
-Comment=Contas e chaves Pix dos fornecedores, conferidas antes de pagar
-Exec=Baliza
-Icon=baliza
-Categories=Office;Finance;
-Terminal=false

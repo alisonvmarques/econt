@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import (
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import (
     ContaInvalida,
     DadosConta,
     cadastrar_conta,
@@ -13,8 +13,8 @@ from baliza.dados.contas import (
     obter_conta,
     registrar_pedido,
 )
-from baliza.dados.lista_bancos import cadastrar_banco_manual
-from baliza.dominio.limites import PedidoInvalido
+from econt.dados.lista_bancos import cadastrar_banco_manual
+from econt.dominio.limites import PedidoInvalido
 
 SENHA = "fundo2026saude"
 AGORA = datetime(2026, 11, 8, 10, 15)
@@ -23,7 +23,7 @@ MOVIMENTO = DadosConta("Conta Movimento", "001", "1234-5", "55555-0")
 
 @pytest.fixture
 def base(tmp_path):
-    return BaseDeDados.criar(tmp_path / "dados.baliza", SENHA)[0]
+    return BaseDeDados.criar(tmp_path / "dados.econt", SENHA)[0]
 
 
 def test_conta_nova_comeca_com_dez_mil_nos_dois_limites(base):
@@ -110,7 +110,7 @@ def test_limites_sao_de_cada_conta_da_entidade(base):
 
 
 def test_contas_e_pedidos_sobrevivem_a_reabertura(tmp_path):
-    caminho = tmp_path / "dados.baliza"
+    caminho = tmp_path / "dados.econt"
     base = BaseDeDados.criar(caminho, SENHA)[0]
     conta_id = cadastrar_conta(base.conexao, MOVIMENTO)
     registrar_pedido(base.conexao, conta_id, "pix", 3_000_000, AGORA, AGORA)

@@ -1,6 +1,6 @@
 import pytest
 
-from baliza.dominio.dinheiro import ValorInvalido, formatar_reais, ler_reais
+from econt.dominio.dinheiro import ValorInvalido, formatar_reais, ler_reais
 
 
 @pytest.mark.parametrize(

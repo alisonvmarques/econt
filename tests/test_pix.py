@@ -1,6 +1,6 @@
 import pytest
 
-from baliza.dominio.pix import ChaveInvalida, formatar_chave, normalizar_chave
+from econt.dominio.pix import ChaveInvalida, formatar_chave, normalizar_chave
 
 
 @pytest.mark.parametrize(

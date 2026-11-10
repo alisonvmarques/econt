@@ -2,20 +2,20 @@ from pathlib import Path
 
 import pytest
 
-from baliza.dados.backup import listar_backups, pasta_de_backups
-from baliza.dados.banco import BaseDeDados
-from baliza.dados.contas import DadosConta, cadastrar_conta
-from baliza.dados.entidade import Entidade, obter_entidade, salvar_entidade
-from baliza.dados.fornecedores import (
+from econt.dados.backup import listar_backups, pasta_de_backups
+from econt.dados.banco import BaseDeDados
+from econt.dados.contas import DadosConta, cadastrar_conta
+from econt.dados.entidade import Entidade, obter_entidade, salvar_entidade
+from econt.dados.fornecedores import (
     DadosFornecedor,
     cadastrar_fornecedor,
     listar_fornecedores,
     salvar_chave_pix,
 )
-from baliza.interface.area_principal import AreaPrincipal
-from baliza.interface.componentes import DURACAO_CONFIRMACAO_MS, Confirmacao, confirmar_rapido
-from baliza.interface.contas import PaginaContas
-from baliza.interface.janela_principal import JanelaPrincipal
+from econt.interface.area_principal import AreaPrincipal
+from econt.interface.componentes import DURACAO_CONFIRMACAO_MS, Confirmacao, confirmar_rapido
+from econt.interface.contas import PaginaContas
+from econt.interface.janela_principal import JanelaPrincipal
 
 SENHA = "fundo2026saude"
 
@@ -23,7 +23,7 @@ SENHA = "fundo2026saude"
 @pytest.fixture
 def base(tmp_path):
     (tmp_path / "dados").mkdir()
-    base = BaseDeDados.criar(tmp_path / "dados" / "dados.baliza", SENHA)[0]
+    base = BaseDeDados.criar(tmp_path / "dados" / "dados.econt", SENHA)[0]
     salvar_entidade(base.conexao, Entidade("Fundo de Saúde Exemplo", "11.222.333/0001-81"))
     base.definir_configuracao("chave_de_recuperacao_guardada", "sim")
     base.salvar()
@@ -151,7 +151,7 @@ def test_copias_e_automatico_nas_configuracoes(aplicacao, base):
 
 
 def test_janela_troca_pelos_dados_restaurados(aplicacao, base, tmp_path):
-    from baliza.dados.backup import exportar, restaurar
+    from econt.dados.backup import exportar, restaurar
 
     caminho = Path(base.cofre.caminho)
     cadastrar_fornecedor(base.conexao, DadosFornecedor("pf", "529.982.247-25", "Maria"))
