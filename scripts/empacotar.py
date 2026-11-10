@@ -145,14 +145,77 @@ def instalador_linux(icones: dict[str, Path]) -> Path:
     return saida
 
 
-def empacotar() -> Path:
+# Bibliotecas do sistema de que o Qt precisa e que o PyInstaller não leva junto.
+DEPENDENCIAS_DEB = [
+    "libegl1",
+    "libgl1",
+    "libfontconfig1",
+    "libxkbcommon-x11-0",
+    "libxcb-cursor0",
+    "libxcb-icccm4",
+    "libxcb-image0",
+    "libxcb-keysyms1",
+    "libxcb-render-util0",
+    "libxcb-shape0",
+    "libdbus-1-3",
+    "libglib2.0-0 | libglib2.0-0t64",
+]
+
+
+def pacote_deb(icones: dict[str, Path]) -> Path:
+    """Pacote .deb para Ubuntu, Linux Mint e Debian. Instala em /opt/econt, com o comando
+    econt, o atalho no menu e o ícone; atualiza pelo gerenciador de pacotes do sistema."""
+    raiz = OBRA / "econt-deb"
+    shutil.rmtree(raiz, ignore_errors=True)
+    shutil.copytree(DIST / "ECont", raiz / "opt" / "econt", symlinks=True)
+    (raiz / "usr" / "bin").mkdir(parents=True)
+    (raiz / "usr" / "bin" / "econt").symlink_to("../../opt/econt/ECont")
+    atalho = (EMPACOTAMENTO / "linux" / "econt.desktop").read_text(encoding="utf-8")
+    aplicacoes = raiz / "usr" / "share" / "applications"
+    aplicacoes.mkdir(parents=True)
+    (aplicacoes / "econt.desktop").write_text(
+        atalho.replace("Exec=ECont", "Exec=econt"), encoding="utf-8"
+    )
+    temas = raiz / "usr" / "share" / "icons" / "hicolor"
+    (temas / "256x256" / "apps").mkdir(parents=True)
+    (temas / "scalable" / "apps").mkdir(parents=True)
+    shutil.copy(icones["png"], temas / "256x256" / "apps" / "econt.png")
+    shutil.copy(ICONE_SVG, temas / "scalable" / "apps" / "econt.svg")
+    documentos = raiz / "usr" / "share" / "doc" / "econt"
+    documentos.mkdir(parents=True)
+    shutil.copy(RAIZ / "LICENSE", documentos / "copyright")
+    tamanho = sum(f.stat().st_size for f in raiz.rglob("*") if f.is_file()) // 1024
+    (raiz / "DEBIAN").mkdir()
+    (raiz / "DEBIAN" / "control").write_text(
+        f"""Package: econt
+Version: {versao()}
+Section: office
+Priority: optional
+Architecture: amd64
+Installed-Size: {tamanho}
+Depends: {", ".join(DEPENDENCIAS_DEB)}
+Maintainer: Alison Marques <alisonvmarques.cont@gmail.com>
+Homepage: https://github.com/alisonvmarques/econt
+Description: Conferência de contas antes de pagar
+ Sistema desktop e offline para conferir as contas bancárias e as chaves Pix dos
+ fornecedores e em quais contas da entidade estão cadastradas, antes de pagar.
+ Os dados ficam num arquivo criptografado no computador.
+""",
+        encoding="utf-8",
+    )
+    saida = DIST / f"econt_{versao()}_amd64.deb"
+    rodar("dpkg-deb", "--root-owner-group", "--build", raiz, saida)
+    return saida
+
+
+def empacotar() -> list[Path]:
     icones = gerar_icones()
     pyinstaller(icones)
     if sistema() == "windows":
-        return instalador_windows(icones)
+        return [instalador_windows(icones)]
     if sistema() == "macos":
-        return instalador_macos()
-    return instalador_linux(icones)
+        return [instalador_macos()]
+    return [pacote_deb(icones), instalador_linux(icones)]
 
 
 def verificar() -> int:
@@ -185,8 +248,20 @@ def verificar() -> int:
             )
             programa = montado / "ECont.app" / "Contents" / "MacOS" / "ECont"
         else:
-            programa = DIST / f"ECont-{versao()}-Linux-x86_64.AppImage"
+            # O .deb já foi instalado pelo apt no passo anterior do workflow.
+            instalado = shutil.which("econt")
+            if instalado is None:
+                print("O pacote .deb não está instalado: rode antes sudo apt install ./dist/*.deb")
+                return 1
+            programa = Path(instalado)
             ambiente["APPIMAGE_EXTRACT_AND_RUN"] = "1"
+            appimage = DIST / f"ECont-{versao()}-Linux-x86_64.AppImage"
+            pelo_appimage = subprocess.run(
+                [str(appimage), "--verificar", str(relatorio)], env=ambiente, timeout=180
+            )
+            if pelo_appimage.returncode != 0:
+                print(relatorio.read_text(encoding="utf-8") if relatorio.exists() else "")
+                return pelo_appimage.returncode
         resultado = subprocess.run(
             [str(programa), "--verificar", str(relatorio)], env=ambiente, timeout=180
         )
@@ -200,4 +275,5 @@ def verificar() -> int:
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "verificar":
         sys.exit(verificar())
-    print(f"Instalador gerado: {empacotar()}")
+    for gerado in empacotar():
+        print(f"Instalador gerado: {gerado}")

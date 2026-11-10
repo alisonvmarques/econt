@@ -1,8 +1,9 @@
 # Instalação
 
-Baixe o instalador do seu sistema na página de
-[versões do ECont](https://github.com/alisonvmarques/econt/releases). Depois de instalado, o
-ECont não precisa de internet.
+No Ubuntu, no Linux Mint e no Debian, o ECont se instala e se atualiza pelo gerenciador de
+pacotes do sistema. Nos outros sistemas, baixe o instalador na página de
+[versões do ECont](https://github.com/alisonvmarques/econt/releases). O ECont não precisa de
+internet para funcionar.
 
 ## Windows
 
@@ -15,10 +16,35 @@ ECont não precisa de internet.
 
 Para desinstalar, use **Configurações › Aplicativos**. Os dados não são apagados.
 
-## Linux
+## Ubuntu, Linux Mint e Debian
 
-O ECont para Linux é um AppImage: um arquivo só, que roda sem instalar, na maioria das
-distribuições (Ubuntu, Linux Mint, Debian, Fedora e outras).
+No Ubuntu (22.04 ou mais novo), no Linux Mint (21 ou mais novo) e no Debian (12 ou mais novo),
+o ECont se instala pelo repositório de pacotes dele. Assim, as versões novas aparecem no
+**Atualizador de software**, junto com as atualizações do sistema, e você escolhe quando
+instalar. Quem baixa a atualização é o sistema: o ECont continua sem acessar a internet.
+
+Uma vez só, no terminal:
+
+```bash
+wget -qO- https://alisonvmarques.github.io/econt/econt.gpg \
+  | sudo tee /usr/share/keyrings/econt.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/econt.gpg] https://alisonvmarques.github.io/econt/apt/ ./" \
+  | sudo tee /etc/apt/sources.list.d/econt.list
+sudo apt update
+sudo apt install econt
+```
+
+Depois, abra o ECont pelo menu de aplicativos. Para atualizar sem esperar o Atualizador:
+`sudo apt update && sudo apt upgrade`. Para desinstalar: `sudo apt remove econt` (os dados
+não são apagados).
+
+O primeiro comando guarda a chave pública que assina os pacotes: o sistema só aceita uma
+atualização assinada por ela.
+
+## Outras distribuições Linux (AppImage)
+
+Para Fedora e outras distribuições, há o AppImage: um arquivo só, que roda sem instalar. Ele
+não se atualiza sozinho; para uma versão nova, baixe o arquivo novo.
 
 1. Baixe `ECont-1.0.0-Linux-x86_64.AppImage`.
 2. Dê permissão para executar: clique com o botão direito no arquivo, **Propriedades ›
@@ -35,9 +61,6 @@ Se aparecer um erro sobre **FUSE**, abra pelo terminal assim:
 ```bash
 ./ECont-1.0.0-Linux-x86_64.AppImage --appimage-extract-and-run
 ```
-
-Guarde o AppImage numa pasta fixa (por exemplo, `~/Aplicativos`). Para uma versão nova, troque
-o arquivo pelo novo; os dados ficam em outro lugar e continuam os mesmos.
 
 ## macOS
 

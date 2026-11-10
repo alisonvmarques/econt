@@ -1,5 +1,6 @@
 # Site da documentação. Para ver no navegador: pip install mkdocs && mkdocs serve
 site_name: ECont
+site_url: https://alisonvmarques.github.io/econt/
 site_description: Guia de uso do ECont
 docs_dir: docs
 theme:

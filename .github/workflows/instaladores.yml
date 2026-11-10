@@ -1,11 +1,16 @@
 name: Instaladores
 
-# Gera e confere os instaladores quando uma versão é criada (tag v1.0.0, por exemplo).
+# Gera e confere os instaladores. Quando uma versão é publicada na página Releases (tag
+# v1.0.0, por exemplo), anexa os instaladores a ela e atualiza o site: a documentação e o
+# repositório de pacotes do Ubuntu, de onde o ECont se atualiza junto com o sistema.
 # Também pode ser rodado à mão, pelo botão "Run workflow", para testar antes de publicar.
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   instalador:
@@ -56,7 +61,7 @@ jobs:
           pip install ".[empacotar]"
 
       - name: A versão da tag é a versão do ECont
-        if: github.ref_type == 'tag'
+        if: github.event_name == 'release'
         shell: bash
         run: |
           versao=$(python -c "import econt; print(econt.__version__)")
@@ -65,6 +70,10 @@ jobs:
 
       - name: Gerar o instalador
         run: python scripts/empacotar.py
+
+      - name: Instalar o pacote .deb, como no Ubuntu
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y ./dist/econt_*_amd64.deb
 
       - name: Instalar e abrir o ECont para conferir
         run: python scripts/empacotar.py verificar
@@ -76,5 +85,56 @@ jobs:
             dist/ECont-*.exe
             dist/ECont-*.dmg
             dist/ECont-*.AppImage
+            dist/econt_*.deb
           if-no-files-found: error
           retention-days: 30
+
+      - name: Anexar os instaladores à versão
+        if: github.event_name == 'release'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/ECont-* dist/econt_*.deb --clobber
+
+  site:
+    # Documentação e repositório de pacotes, publicados no GitHub Pages.
+    if: github.event_name == 'release'
+    needs: instalador
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publicar.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ECont-Linux
+          path: dist
+
+      - name: Montar a documentação
+        run: |
+          pip install mkdocs
+          mkdocs build --strict --site-dir site
+
+      - name: Montar o repositório de pacotes, assinado
+        env:
+          CHAVE: ${{ secrets.APT_CHAVE_PRIVADA }}
+        run: |
+          test -n "$CHAVE" || { echo "Falta o segredo APT_CHAVE_PRIVADA."; exit 1; }
+          export GNUPGHOME="$(mktemp -d)"
+          echo "$CHAVE" | gpg --batch --import
+          bash scripts/repositorio_apt.sh dist site/apt
+          gpg --export > site/econt.gpg
+          gpg --armor --export > site/econt.asc
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: publicar
+        uses: actions/deploy-pages@v4

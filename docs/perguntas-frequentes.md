@@ -16,7 +16,9 @@ Use **Esqueci a senha** na tela de entrada, com a chave de recuperação.
 
 ## O ECont precisa de internet?
 
-Não. Nada sai do computador: não há conta, nuvem, e-mail nem atualização automática.
+Não. Nada sai do computador: não há conta, nuvem nem e-mail, e o ECont não acessa a
+internet. No Ubuntu, no Linux Mint e no Debian, as versões novas chegam pelo Atualizador de
+software do próprio sistema, como qualquer outro programa instalado.
 
 ## Como levo os dados para outro computador?
 
