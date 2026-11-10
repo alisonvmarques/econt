@@ -3,11 +3,20 @@ name: Instaladores
 # Gera e confere os instaladores. Quando uma versão é publicada na página Releases (tag
 # v1.0.0, por exemplo), anexa os instaladores a ela e atualiza o site: a documentação e o
 # repositório de pacotes do Ubuntu, de onde o ECont se atualiza junto com o sistema.
-# Também pode ser rodado à mão, pelo botão "Run workflow", para testar antes de publicar.
+# Também pode ser rodado à mão, pelo botão "Run workflow": vazio, só testa; com a versão
+# (v1.0.0, por exemplo), publica de novo os instaladores e o site dessa versão.
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      versao:
+        description: "Versão já criada na página Releases para publicar de novo (ex.: v1.0.0)"
+        required: false
+        default: ""
+
+env:
+  PUBLICAR: ${{ github.event_name == 'release' && github.ref_name || inputs.versao }}
 
 permissions:
   contents: write
@@ -60,13 +69,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install ".[empacotar]"
 
-      - name: A versão da tag é a versão do ECont
-        if: github.event_name == 'release'
+      - name: A versão publicada é a versão do ECont
+        if: env.PUBLICAR != ''
         shell: bash
         run: |
           versao=$(python -c "import econt; print(econt.__version__)")
-          test "v$versao" = "${GITHUB_REF_NAME}" || {
-            echo "A tag ${GITHUB_REF_NAME} não bate com a versão $versao do ECont."; exit 1; }
+          test "v$versao" = "${PUBLICAR}" || {
+            echo "A versão ${PUBLICAR} não bate com a versão $versao do ECont."; exit 1; }
 
       - name: Gerar o instalador
         run: python scripts/empacotar.py
@@ -90,15 +99,19 @@ jobs:
           retention-days: 30
 
       - name: Anexar os instaladores à versão
-        if: github.event_name == 'release'
+        if: env.PUBLICAR != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${GITHUB_REF_NAME}" dist/ECont-* dist/econt_*.deb --clobber
+        run: |
+          # Cada sistema gera só os seus arquivos: o .deb existe só no Linux.
+          shopt -s nullglob
+          arquivos=(dist/ECont-*.exe dist/ECont-*.dmg dist/ECont-*.AppImage dist/econt_*.deb)
+          gh release upload "${PUBLICAR}" "${arquivos[@]}" --clobber
 
   site:
     # Documentação e repositório de pacotes, publicados no GitHub Pages.
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || inputs.versao != ''
     needs: instalador
     runs-on: ubuntu-22.04
     permissions:

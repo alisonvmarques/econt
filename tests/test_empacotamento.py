@@ -95,7 +95,8 @@ def test_workflow_instala_o_deb_antes_de_conferir():
 def test_versao_publicada_anexa_instaladores_e_publica_o_site():
     workflow = (RAIZ / ".github" / "workflows" / "instaladores.yml").read_text(encoding="utf-8")
     assert "release:\n    types: [published]" in workflow
-    assert 'gh release upload "${GITHUB_REF_NAME}"' in workflow
+    assert 'gh release upload "${PUBLICAR}" "${arquivos[@]}"' in workflow
+    assert "shopt -s nullglob" in workflow
     assert "secrets.APT_CHAVE_PRIVADA" in workflow
     assert "actions/deploy-pages" in workflow
     assert "mkdocs build --strict" in workflow
