@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "econt"
-version = "0.8.1"
+version = "1.0.0"
 description = "Sistema desktop e offline para conferir as contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Alison Vasconcelos Marques" }]
 keywords = ["fornecedores", "pagamentos", "pix", "contas bancárias", "desktop"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: X11 Applications :: Qt",
     "Intended Audience :: Financial and Insurance Industry",
     "Natural Language :: Portuguese (Brazilian)",

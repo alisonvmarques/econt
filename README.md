@@ -5,7 +5,7 @@
 Conferência de contas: sistema desktop e offline para conferir as contas dos fornecedores e
 em quais contas da entidade estão cadastradas antes de pagar.
 
-> Versão atual: 0.8 · Novo nome: ECont.
+> Versão atual: 1.0 · Versão estável.
 
 ![Consulta de um fornecedor](docs/imagens/consulta-resultado.png)
 
@@ -31,14 +31,16 @@ ECont registra essa situação e mostra, antes de pagar, de quais contas o pagam
 
 ## Instalação
 
-Baixe o instalador na página de
-[versões](https://github.com/alisonvmarques/econt/releases):
+No Ubuntu, no Linux Mint e no Debian, o ECont se instala pelo repositório de pacotes dele e
+recebe as versões novas pelo Atualizador de software. Nos outros sistemas, baixe o instalador
+na página de [versões](https://github.com/alisonvmarques/econt/releases):
 
-| Sistema | Arquivo |
+| Sistema | Como instalar |
 |---|---|
+| Ubuntu, Linux Mint e Debian | Pelo repositório de pacotes: atualiza junto com o sistema |
 | Windows 10 ou 11 | `ECont-<versão>-Windows-instalador.exe` |
-| Linux (x86_64) | `ECont-<versão>-Linux-x86_64.AppImage` |
 | macOS | `ECont-<versão>-macOS.dmg` |
+| Outras distribuições Linux | `ECont-<versão>-Linux-x86_64.AppImage` |
 
 O passo a passo de cada sistema, inclusive os avisos de segurança na primeira vez, está em
 [Instalação](docs/instalacao.md).
