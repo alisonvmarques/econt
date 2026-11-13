@@ -210,6 +210,15 @@ def perguntar(pai: QWidget, titulo: str, mensagem: str, confirmar: str) -> bool:
     return caixa.clickedButton() is sim
 
 
+def avisar(pai: QWidget, titulo: str, mensagem: str) -> None:
+    """Explica por que uma ação não foi feita e o que fazer antes (RNF04)."""
+    caixa = QMessageBox(pai)
+    caixa.setWindowTitle(titulo)
+    caixa.setText(mensagem)
+    caixa.addButton("Entendi", QMessageBox.ButtonRole.AcceptRole)
+    caixa.exec()
+
+
 class Dialogo(QDialog):
     """Janela por cima da tela, com título, corpo e botões Cancelar e confirmar."""
 
