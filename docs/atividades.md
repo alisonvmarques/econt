@@ -10,7 +10,8 @@ acompanhar o trabalho do setor financeiro no próprio ECont, sem outra ferrament
 Há um único quadro, o da entidade. Ele começa com três colunas: **A fazer**,
 **Em andamento** e **Concluído**. Cada coluna mostra o nome e quantas atividades tem.
 
-Cada cartão mostra o título, o prazo (se houver) e o fornecedor (se houver):
+Cada cartão mostra o título, a prioridade e as etiquetas (se houver), o prazo (se houver) e
+o fornecedor (se houver):
 
 - **Atrasada:** o prazo já passou e a atividade não está na coluna de conclusão. O cartão
   fica com a borda vermelha e a etiqueta "Atrasada".
@@ -29,11 +30,26 @@ Atividades atrasadas e que vencem hoje também aparecem no [Início](inicio.md).
 |---|---|
 | Título | Obrigatório, até 120 caracteres |
 | Descrição | Opcional, com quantas linhas precisar |
-| Prazo | Opcional. Só a data, assim: 25/11/2026 |
-| Fornecedor | Opcional. Digite parte do nome para filtrar a lista |
+| Prazo | Opcional. Digite só os números (25112026) e as barras entram sozinhas |
+| Prioridade | Opcional: Baixa, Média ou Alta |
+| Fornecedor | Opcional. Digite parte do nome, do nome fantasia ou do CNPJ e escolha na lista que aparece |
+| Etiquetas | Opcional. Marque quantas quiser; **+ Nova etiqueta** cria uma ali mesmo |
 
 Para editar, dê um duplo clique no cartão ou selecione o cartão e tecle **Enter**. O diálogo
 também mostra em que coluna a atividade está e quando foi criada, alterada e movida.
+
+## Prioridade e etiquetas
+
+A **prioridade** aparece no cartão com o nome e um símbolo: ▲ Alta, ● Média, ▼ Baixa. Ela não
+muda a ordem do quadro: a ordem é a que você arruma arrastando.
+
+As **etiquetas** marcam atividades parecidas, como "Banco" ou "Prestação de contas". Cada uma
+tem um nome e uma cor (cinza, azul, verde, amarelo ou vermelho). O botão **Etiquetas**, no topo
+do quadro, lista todas, com quantas atividades usam cada uma, e permite criar, mudar o nome e
+a cor, e excluir. Excluir uma etiqueta pede confirmação e só a tira das atividades: as
+atividades continuam.
+
+Para ver só as atividades de uma etiqueta, digite o nome dela na busca.
 
 ## Mover
 
@@ -47,8 +63,8 @@ O ECont grava cada troca de coluna com a data e os nomes das colunas.
 
 ## Buscar
 
-O campo de busca, no topo, filtra os cartões por título, descrição e nome do fornecedor
-enquanto você digita, sem diferenciar maiúsculas e acentos. Com a busca ativa, cada coluna
+O campo de busca, no topo, filtra os cartões por título, descrição, nome do fornecedor e
+etiquetas enquanto você digita, sem diferenciar maiúsculas e acentos. Com a busca ativa, cada coluna
 mostra quantas atividades estão à mostra ("1 de 4"), e dá para arrastar normalmente: o cartão
 cai no lugar certo mesmo com outros cartões escondidos.
 
