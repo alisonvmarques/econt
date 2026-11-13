@@ -15,6 +15,10 @@ Clique em **Novo fornecedor** e escolha pessoa jurídica ou pessoa física.
 - **Razão social** (ou nome, para pessoa física): obrigatória.
 - Nome fantasia, telefone, e-mail, endereço e observações são opcionais.
 
+Digite só os números: CNPJ, CPF e telefone ganham os pontos, a barra, o traço e os parênteses
+enquanto você digita. O mesmo vale para a chave Pix de CNPJ, CPF ou telefone e para o CNPJ da
+entidade. Telefone começando com 0 (como 0800) ou com +, ou com texto, fica como foi digitado.
+
 Enter em qualquer campo salva.
 
 ## A ficha do fornecedor

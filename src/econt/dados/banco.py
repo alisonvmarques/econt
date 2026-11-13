@@ -121,6 +121,75 @@ MIGRACOES: list[str] = [
     """
     ALTER TABLE marcacao ADD COLUMN desmarcada_em TEXT;
     """,
+    # 7 · quadro de atividades (RF27 a RF31). Um quadro só, com colunas em ordem (RN14) e no
+    # máximo uma coluna de conclusão (RN15). A posição vai de 1 em diante, sem buracos, entre
+    # as atividades ativas da coluna; arquivada fica sem posição e guarda a coluna de origem
+    # (RN16, RN17). O histórico de movimentos guarda o nome das colunas, para sobreviver a
+    # renomeações e exclusões. Bases antigas ganham as três colunas padrão ao abrir.
+    """
+    CREATE TABLE coluna_atividade (
+        id          INTEGER PRIMARY KEY,
+        nome        TEXT NOT NULL CHECK (length(trim(nome)) > 0),
+        posicao     INTEGER NOT NULL CHECK (posicao >= 1),
+        conclusao   INTEGER NOT NULL DEFAULT 0 CHECK (conclusao IN (0, 1)),
+        criado_em   TEXT NOT NULL,
+        alterado_em TEXT NOT NULL
+    );
+    CREATE UNIQUE INDEX coluna_atividade_uma_conclusao
+        ON coluna_atividade (conclusao) WHERE conclusao = 1;
+    CREATE TABLE atividade (
+        id            INTEGER PRIMARY KEY,
+        titulo        TEXT NOT NULL CHECK (length(trim(titulo)) BETWEEN 1 AND 120),
+        descricao     TEXT NOT NULL DEFAULT '',
+        prazo         TEXT,
+        fornecedor_id INTEGER REFERENCES fornecedor (id) ON DELETE SET NULL,
+        coluna_id     INTEGER NOT NULL REFERENCES coluna_atividade (id),
+        posicao       INTEGER CHECK (posicao >= 1),
+        criado_em     TEXT NOT NULL,
+        alterado_em   TEXT NOT NULL,
+        movido_em     TEXT NOT NULL,
+        arquivado_em  TEXT,
+        CHECK ((arquivado_em IS NULL) = (posicao IS NOT NULL))
+    );
+    CREATE INDEX atividade_quadro ON atividade (coluna_id, posicao) WHERE arquivado_em IS NULL;
+    CREATE INDEX atividade_prazo ON atividade (prazo) WHERE arquivado_em IS NULL;
+    CREATE INDEX atividade_arquivada ON atividade (arquivado_em) WHERE arquivado_em IS NOT NULL;
+    CREATE TABLE movimento_atividade (
+        id             INTEGER PRIMARY KEY,
+        atividade_id   INTEGER NOT NULL REFERENCES atividade (id) ON DELETE CASCADE,
+        coluna_origem  TEXT NOT NULL,
+        coluna_destino TEXT NOT NULL,
+        movido_em      TEXT NOT NULL
+    );
+    CREATE INDEX movimento_atividade_atividade ON movimento_atividade (atividade_id, movido_em);
+    INSERT INTO coluna_atividade (nome, posicao, conclusao, criado_em, alterado_em) VALUES
+        ('A fazer', 1, 0, strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'),
+            strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')),
+        ('Em andamento', 2, 0, strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'),
+            strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')),
+        ('Concluído', 3, 1, strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'),
+            strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'));
+    """,
+    # 8 · prioridade (RF33) e etiquetas das atividades (RF32, RN19). A prioridade vai de 0
+    # (sem prioridade) a 3 (alta). A cor da etiqueta é um papel do tema, nunca uma cor fixa.
+    """
+    ALTER TABLE atividade ADD COLUMN prioridade INTEGER NOT NULL DEFAULT 0
+        CHECK (prioridade BETWEEN 0 AND 3);
+    CREATE TABLE etiqueta (
+        id          INTEGER PRIMARY KEY,
+        nome        TEXT NOT NULL CHECK (length(trim(nome)) BETWEEN 1 AND 30),
+        cor         TEXT NOT NULL
+                    CHECK (cor IN ('neutra', 'info', 'sucesso', 'atencao', 'perigo')),
+        criado_em   TEXT NOT NULL,
+        alterado_em TEXT NOT NULL
+    );
+    CREATE TABLE atividade_etiqueta (
+        atividade_id INTEGER NOT NULL REFERENCES atividade (id) ON DELETE CASCADE,
+        etiqueta_id  INTEGER NOT NULL REFERENCES etiqueta (id) ON DELETE CASCADE,
+        PRIMARY KEY (atividade_id, etiqueta_id)
+    );
+    CREATE INDEX atividade_etiqueta_etiqueta ON atividade_etiqueta (etiqueta_id);
+    """,
 ]
 
 

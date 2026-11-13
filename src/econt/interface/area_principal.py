@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
 
 from econt.dados.banco import BaseDeDados
 from econt.dados.entidade import Entidade, obter_entidade, salvar_entidade
+from econt.interface.atividades import DESCRICAO as DESCRICAO_ATIVIDADES
+from econt.interface.atividades import PaginaAtividades
 from econt.interface.componentes import texto
 from econt.interface.configuracoes import PaginaConfiguracoes
 from econt.interface.consulta import PaginaConsulta
@@ -32,6 +34,7 @@ AREAS = [
     ("consulta", "Consulta"),
     ("fornecedores", "Fornecedores"),
     ("entidade", "Entidade"),
+    ("atividades", "Atividades"),
     ("configuracoes", "Configurações"),
 ]
 LARGURA_NAVEGACAO = 232
@@ -55,6 +58,7 @@ DESCRICOES = {
     "consulta": "Busque o fornecedor e confira onde cada conta está cadastrada.",
     "fornecedores": "Fornecedores, com as contas bancárias e as chaves Pix.",
     "entidade": "Os dados e as contas da entidade.",
+    "atividades": DESCRICAO_ATIVIDADES,
     "configuracoes": "Bancos e, nas próximas versões, impressão, backup e senha.",
 }
 
@@ -187,6 +191,8 @@ class AreaPrincipal(QWidget):
             return PaginaConsulta(self.base)
         if chave == "fornecedores" and self.base is not None:
             return PaginaFornecedores(self.base)
+        if chave == "atividades" and self.base is not None:
+            return PaginaAtividades(self.base)
         if chave == "configuracoes" and self.base is not None:
             pagina = PaginaConfiguracoes(self.base)
             pagina.restaurado.connect(self.restaurado.emit)

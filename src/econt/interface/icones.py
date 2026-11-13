@@ -13,6 +13,11 @@ CAMINHOS = {
         'M12.5 10.5c1 .5 1.8 1.5 2 3" {t}/>'
     ),
     "entidade": '<path d="M2 6l6-3.5L14 6M3 6.5v6M6.3 6.5v6M9.7 6.5v6M13 6.5v6M2 13.5h12" {t}/>',
+    "atividades": (
+        '<rect x="2" y="2.5" width="3.4" height="11" rx=".8" {t}/>'
+        '<rect x="6.3" y="2.5" width="3.4" height="7" rx=".8" {t}/>'
+        '<rect x="10.6" y="2.5" width="3.4" height="9" rx=".8" {t}/>'
+    ),
     "configuracoes": (
         '<circle cx="8" cy="8" r="2.2" {t}/>'
         '<path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4'

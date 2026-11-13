@@ -26,6 +26,15 @@ CORES = {
     "status/danger-bg": "#F1DADA",
 }
 
+# Cor do texto (e da bolinha nas listas) de cada cor de etiqueta, com os tokens acima.
+CORES_DAS_ETIQUETAS = {
+    "neutra": "text/secondary",
+    "info": "accent/default",
+    "sucesso": "status/success",
+    "atencao": "status/warning",
+    "perigo": "status/danger",
+}
+
 FONTES = '"Inter", "Segoe UI", "Ubuntu", "Helvetica Neue", "Arial", sans-serif'
 
 
@@ -100,8 +109,25 @@ QComboBox::drop-down, QDateTimeEdit::drop-down { border: none; width: 28px; }
 QComboBox::down-arrow, QDateTimeEdit::down-arrow { image: url($seta); width: 16px;
   height: 16px; }
 QComboBox QAbstractItemView { background: $bg/surface; selection-background-color: $bg/selected;
-  selection-color: $text/primary; border: 1px solid $border/default; }
+  selection-color: $text/primary; border: 1px solid $border/default; padding: 4px;
+  outline: none; }
+QComboBox QAbstractItemView::item { padding: 6px 10px; min-height: 20px; }
+QComboBox QAbstractItemView::item:selected, QComboBox QAbstractItemView::item:hover {
+  background: $bg/selected; color: $text/primary; }
+QListView#sugestoes { background: $bg/surface; border: 1px solid $border/default;
+  outline: none; }
+QListView#sugestoes::item { padding: 6px 10px; }
+QListView#sugestoes::item:selected { background: $bg/selected; color: $text/primary; }
 QDialog#dialogo { background: $bg/surface; }
+QCalendarWidget QAbstractItemView { background: $bg/surface; color: $text/primary;
+  selection-background-color: $accent/default; selection-color: $text/on-accent;
+  outline: none; }
+QCalendarWidget QAbstractItemView:disabled { color: $text/placeholder; }
+QCalendarWidget #qt_calendar_navigationbar { background: $accent/default; }
+QCalendarWidget QToolButton { background: transparent; border: none; color: $text/on-accent;
+  font-weight: 600; padding: 4px 8px; }
+QCalendarWidget QToolButton:hover { background: $accent/hover; }
+QCalendarWidget QSpinBox { padding: 2px 6px; min-height: 18px; }
 QTabWidget::pane { border: none; border-top: 1px solid $border/default; top: -1px; }
 QTabBar::tab { background: transparent; border: none; border-bottom: 2px solid transparent;
   padding: 8px 2px; margin-right: 20px; color: $text/secondary; }
@@ -129,6 +155,39 @@ QLabel[etiqueta="perigo"] { background: $status/danger-bg; color: $status/danger
   border: 1px solid $status/danger; }
 QLabel[etiqueta="sucesso"] { background: $status/success-bg; color: $status/success;
   border: 1px solid $status/success-bg; }
+QLabel[etiqueta="info"] { background: $accent/subtle; color: $accent/default;
+  border: 1px solid $accent/subtle; }
+QListWidget { background: $bg/surface; border: 1px solid $border/input; border-radius: 6px;
+  padding: 4px; outline: none; }
+QListWidget:focus { border: 2px solid $accent/default; padding: 3px; }
+QListWidget::item { padding: 4px 6px; border-radius: 4px; }
+QListWidget::item:selected { background: $bg/selected; color: $text/primary; }
+QPlainTextEdit { background: $bg/surface; border: 1px solid $border/input; border-radius: 6px;
+  padding: 6px 8px; }
+QPlainTextEdit:focus { border: 2px solid $accent/default; padding: 5px 7px; }
+QScrollArea { background: transparent; border: none; }
+QScrollArea > QWidget > QWidget { background: transparent; }
+QMenu { background: $bg/surface; border: 1px solid $border/default; padding: 4px; }
+QMenu::item { padding: 6px 20px 6px 12px; border-radius: 4px; }
+QMenu::item:selected { background: $bg/selected; color: $text/primary; }
+QMenu::item:disabled { color: $text/placeholder; }
+QMenu::separator { height: 1px; background: $border/default; margin: 4px 8px; }
+#coluna_quadro { background: $bg/sidebar; border: 1px solid $border/default; border-radius: 8px; }
+#cartao_atividade { background: $bg/surface; border: 1px solid $border/default;
+  border-radius: 6px; }
+#cartao_atividade:hover { border-color: $border/input; }
+#cartao_atividade:focus { border: 2px solid $accent/default; }
+#cartao_atividade[prazo="atrasada"] { border-left: 4px solid $status/danger; }
+#cartao_atividade[prazo="hoje"] { border-left: 4px solid $status/warning; }
+#cartao_atividade[prazo="atrasada"]:focus, #cartao_atividade[prazo="hoje"]:focus {
+  border-top: 2px solid $accent/default; border-right: 2px solid $accent/default;
+  border-bottom: 2px solid $accent/default; }
+#indicador_soltar { background: $accent/default; border: none; border-radius: 2px; }
+QToolButton[papel="opcoes"] { background: transparent; border: 1px solid transparent;
+  border-radius: 6px; padding: 2px 8px; color: $text/secondary; font-weight: 600; }
+QToolButton[papel="opcoes"]:hover { background: $bg/surface-alt; color: $text/primary; }
+QToolButton[papel="opcoes"]:focus { border: 2px solid $accent/default; }
+QToolButton[papel="opcoes"]::menu-indicator { image: none; width: 0; }
 """
 
 

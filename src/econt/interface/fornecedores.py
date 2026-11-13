@@ -49,6 +49,11 @@ from econt.dados.fornecedores import (
 )
 from econt.dados.lista_bancos import listar_bancos
 from econt.dominio.documentos import TIPOS_DE_PESSOA, formatar_documento
+from econt.dominio.formatos import (
+    chave_pix_ao_digitar,
+    documento_ao_digitar,
+    telefone_ao_digitar,
+)
 from econt.dominio.pix import TIPOS_DE_CHAVE
 from econt.interface.cadastros import PainelCadastros
 from econt.interface.componentes import (
@@ -64,6 +69,7 @@ from econt.interface.componentes import (
     confirmar_rapido,
     empilhar,
     etiqueta,
+    formatar_ao_digitar,
     linha_de_acoes,
     mudar_aviso,
     perguntar,
@@ -213,6 +219,10 @@ class FormularioFornecedor(QWidget):
         }
         self.tipo.caixa.currentIndexChanged.connect(lambda _: self._ajustar_ao_tipo())
         self.documento.caixa.editingFinished.connect(self._formatar_documento)
+        formatar_ao_digitar(
+            self.documento.caixa, lambda t: documento_ao_digitar(self.tipo.valor() or "pj", t)
+        )
+        formatar_ao_digitar(self.telefone.caixa, telefone_ao_digitar)
         self.cancelar.clicked.connect(self.cancelado.emit)
         self.salvar.clicked.connect(self._salvar)
         # Enter em qualquer campo salva, como nos diálogos (RNF05).
@@ -234,6 +244,8 @@ class FormularioFornecedor(QWidget):
             "Formato: 000.000.000-00" if pf else "Formato: 00.000.000/0000-00"
         )
         self.razao_social.rotulo.setText("Nome" if pf else "Razão social")
+        if self.documento.valor():
+            self.documento.definir(documento_ao_digitar(self.tipo.valor(), self.documento.valor()))
         self.nome_fantasia.setVisible(not pf)
 
     def _formatar_documento(self) -> None:
@@ -480,6 +492,7 @@ class DialogoChavePix(DialogoItem):
         else:
             self.tipo.caixa.setCurrentIndex(-1)
         self.tipo.caixa.currentIndexChanged.connect(lambda _: self._sugerir_documento())
+        formatar_ao_digitar(self.chave.caixa, lambda t: chave_pix_ao_digitar(self.tipo.valor(), t))
         self.montar_acoes()
 
     def _sugerir_documento(self) -> None:
