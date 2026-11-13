@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
 
-from PySide6.QtCore import QDateTime, Qt, QTimer, Signal
+from PySide6.QtCore import QDateTime, QModelIndex, QSortFilterProxyModel, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -25,6 +26,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from econt.dominio.texto import normalizar
 
 ICONE_AVISO = {"erro": "⚠", "atencao": "⏱", "sucesso": "✓", "info": "ⓘ"}
 
@@ -131,6 +134,31 @@ class CampoBase(QWidget):
             self.linha_ajuda.setVisible(bool(ajuda))
 
 
+def formatar_ao_digitar(caixa: QLineEdit, formatar: Callable[[str], str]) -> None:
+    """Aplica a pontuação enquanto a pessoa digita (RNF16), sem tirar o cursor do lugar.
+
+    O cursor fica depois do mesmo número de letras e números que tinha antes; digitando no
+    fim, continua no fim."""
+
+    def ao_editar(texto: str) -> None:
+        cursor = caixa.cursorPosition()
+        novo = formatar(texto)
+        if novo == texto:
+            return
+        if cursor >= len(texto):
+            posicao = len(novo)
+        else:
+            antes = sum(1 for c in texto[:cursor] if c.isalnum())
+            posicao = contados = 0
+            while posicao < len(novo) and contados < antes:
+                contados += novo[posicao].isalnum()
+                posicao += 1
+        caixa.setText(novo)  # setText não emite textEdited: não volta para cá
+        caixa.setCursorPosition(posicao)
+
+    caixa.textEdited.connect(ao_editar)
+
+
 class Campo(CampoBase):
     """Campo de texto."""
 
@@ -147,28 +175,99 @@ class Campo(CampoBase):
         self.caixa.setText(valor)
 
 
+TEXTO_DE_BUSCA = Qt.ItemDataRole.UserRole + 1
+
+
+class FiltroDaBusca(QSortFilterProxyModel):
+    """Opções que têm todas as palavras digitadas, sem diferenciar maiúsculas e acentos."""
+
+    def __init__(self, pai: QWidget) -> None:
+        super().__init__(pai)
+        self.palavras: list[str] = []
+
+    def definir(self, termo: str) -> None:
+        if hasattr(self, "beginFilterChange"):  # Qt 6.10 ou mais novo
+            self.beginFilterChange()
+            self.palavras = normalizar(termo).split()
+            self.endFilterChange()
+        else:
+            self.palavras = normalizar(termo).split()
+            self.invalidateRowsFilter()
+
+    def filterAcceptsRow(self, linha, pai) -> bool:  # noqa: N802 (nome do Qt)
+        if not self.palavras:
+            return True
+        indice = self.sourceModel().index(linha, 0, pai)
+        texto = f"{indice.data()} {indice.data(TEXTO_DE_BUSCA) or ''}"
+        alvo = normalizar(texto)
+        return all(palavra in alvo for palavra in self.palavras)
+
+
 class CampoEscolha(CampoBase):
-    """Lista de escolha. Com `busca=True`, dá para digitar parte do texto para filtrar."""
+    """Lista de escolha. Com `busca=True`, digitar mostra logo abaixo só as opções que
+    combinam (qualquer parte do texto, sem diferenciar maiúsculas e acentos).
+
+    Cada opção é (chave, rótulo) ou (chave, rótulo, texto extra de busca), como o CNPJ."""
 
     def __init__(
-        self, rotulo: str, opcoes: list[tuple[str, str]], ajuda: str = "", busca: bool = False
+        self, rotulo: str, opcoes: list[tuple], ajuda: str = "", busca: bool = False
     ) -> None:
         super().__init__(rotulo, QComboBox(), ajuda)
-        for chave, rotulo_opcao in opcoes:
+        for chave, rotulo_opcao, *extra in opcoes:
             self.caixa.addItem(rotulo_opcao, chave)
+            if extra:
+                self.caixa.setItemData(self.caixa.count() - 1, extra[0], TEXTO_DE_BUSCA)
         # A largura vem do layout, não do nome mais longo da lista (há bancos com nomes enormes).
         self.caixa.setSizeAdjustPolicy(
             QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
         )
         self.caixa.setMinimumContentsLength(12)
+        self.filtro: FiltroDaBusca | None = None
         if busca:
             self.caixa.setEditable(True)
             self.caixa.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-            completar = self.caixa.completer()
-            completar.setFilterMode(Qt.MatchFlag.MatchContains)
-            completar.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
+            self.filtro = FiltroDaBusca(self)
+            self.filtro.setSourceModel(self.caixa.model())
+            completar = QCompleter(self.filtro, self)
+            completar.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
+            completar.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+            completar.setMaxVisibleItems(8)
+            self.caixa.setCompleter(completar)
+            completar.activated[QModelIndex].connect(self._escolher_sugestao)
+            self.caixa.lineEdit().textEdited.connect(self._sugerir)
+            self.caixa.lineEdit().installEventFilter(self)
             self.caixa.lineEdit().setPlaceholderText("Digite o código ou o nome")
         self.caixa.currentIndexChanged.connect(lambda _: self.limpar_erro())
+
+    def eventFilter(self, objeto, evento) -> bool:  # noqa: N802 (nome do Qt)
+        """Ao entrar no campo, o texto fica todo selecionado: digitar já começa uma busca."""
+        if evento.type() == evento.Type.FocusIn:
+            QTimer.singleShot(0, objeto, objeto.selectAll)  # cancelado se o campo sumir
+        return super().eventFilter(objeto, evento)
+
+    def sugestoes(self) -> list[str]:
+        """As opções que combinam com o que foi digitado, na ordem da lista."""
+        if self.filtro is None:
+            return []
+        return [self.filtro.index(i, 0).data() for i in range(self.filtro.rowCount())]
+
+    def _sugerir(self, texto: str) -> None:
+        self.filtro.definir(texto)
+        completar = self.caixa.completer()
+        if texto.strip() and self.filtro.rowCount():
+            completar.complete()
+        else:
+            completar.popup().hide()
+
+    def _escolher_sugestao(self, indice: QModelIndex) -> None:
+        """`indice` vem do modelo de sugestões do QCompleter, que fica por cima do filtro."""
+        if not indice.isValid():
+            return
+        do_filtro = self.caixa.completer().completionModel().mapToSource(indice)
+        linha = self.filtro.mapToSource(do_filtro).row()
+        if linha >= 0:
+            self.caixa.setCurrentIndex(linha)
+            self.caixa.setEditText(self.caixa.itemText(linha))
 
     def valor(self) -> str:
         """A chave da opção escolhida, ou vazio quando o texto digitado não é uma opção."""

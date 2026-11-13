@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QVBoxLayout, QWi
 
 from econt.dados.entidade import Entidade, problemas_da_entidade
 from econt.dominio.documentos import formatar_cnpj
+from econt.dominio.formatos import cnpj_ao_digitar
 from econt.interface.acesso import TelaCentral
 from econt.interface.componentes import (
     Abas,
@@ -17,6 +18,7 @@ from econt.interface.componentes import (
     botao,
     cartao,
     confirmar_rapido,
+    formatar_ao_digitar,
     linha_de_acoes,
     texto,
 )
@@ -78,6 +80,7 @@ class FormularioEntidade(QWidget):
             self.razao_social.definir(entidade.razao_social)
             self.cnpj.definir(entidade.cnpj_formatado)
         self.cnpj.caixa.editingFinished.connect(self._formatar_cnpj)
+        formatar_ao_digitar(self.cnpj.caixa, cnpj_ao_digitar)
         layout.addWidget(self.razao_social)
         layout.addWidget(self.cnpj)
 
