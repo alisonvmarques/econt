@@ -96,7 +96,8 @@ def texto_do_prazo(atividade: Atividade) -> tuple[str, str | None]:
 class CartaoAtividade(QFrame):
     """Um cartão do quadro. Enter ou duplo clique abrem; Ctrl+setas movem (RNF05)."""
 
-    acao = Signal(str, int)  # "abrir", "esquerda", "direita", "subir", "descer", "arquivar"
+    # "abrir", "esquerda", "direita", "subir", "descer", "arquivar", "arraste" e "fim_do_arraste"
+    acao = Signal(str, int)
 
     def __init__(self, atividade: Atividade) -> None:
         super().__init__()
@@ -178,7 +179,9 @@ class CartaoAtividade(QFrame):
         arraste.setMimeData(self.dados_do_arraste())
         arraste.setPixmap(self.grab())
         arraste.setHotSpot(QPoint(20, 12))
+        self.acao.emit("arraste", self.id)
         arraste.exec(Qt.DropAction.MoveAction)
+        self.acao.emit("fim_do_arraste", self.id)
 
     def criar_menu(self) -> QMenu:
         menu = QMenu(self)
@@ -403,6 +406,10 @@ class PaginaAtividades(QWidget):
         self.base = base
         self.hoje = hoje
         self.colunas: list[ColunaQuadro] = []
+        # Durante um arraste, o quadro só é remontado quando ele termina: o cartão arrastado
+        # não pode ser destruído enquanto o Qt ainda cuida do arraste dele.
+        self.arrastando = False
+        self.foco_depois_do_arraste: int | None = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 32, 40, 32)
         layout.setSpacing(16)
@@ -518,7 +525,12 @@ class PaginaAtividades(QWidget):
     # Atividades ---------------------------------------------------------------------------
 
     def _acao_do_cartao(self, acao: str, atividade_id: int) -> None:
-        if acao == "abrir":
+        if acao == "arraste":
+            self.arrastando, self.foco_depois_do_arraste = True, atividade_id
+        elif acao == "fim_do_arraste":
+            self.arrastando = False
+            self.atualizar(foco=self.foco_depois_do_arraste)
+        elif acao == "abrir":
             self.abrir_atividade(atividade_id)
         elif acao == "arquivar":
             self.arquivar(atividade_id)
@@ -579,10 +591,14 @@ class PaginaAtividades(QWidget):
             mover_atividade(self.base.conexao, atividade_id, coluna_id, posicao)
         except ValueError as erro:
             avisar(self, "Não foi possível mover", str(erro))
-            self.atualizar()
+            if not self.arrastando:
+                self.atualizar()
             return
         self.base.salvar()
-        self.atualizar(foco=atividade_id)
+        if self.arrastando:
+            self.foco_depois_do_arraste = atividade_id
+        else:
+            self.atualizar(foco=atividade_id)
 
     def soltar(self, atividade_id: int, coluna_id: int, antes_de: int | None) -> None:
         ordem = self.coluna(coluna_id).ordem
