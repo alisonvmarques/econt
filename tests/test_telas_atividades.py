@@ -462,3 +462,97 @@ def test_fornecedor_aparece_enquanto_digita(aplicacao, base):
     dialogo.titulo.definir("Pedir certidão")
     dialogo.ao_confirmar()
     assert obter_atividade(c, dialogo.atividade_id).fornecedor_id == lab
+
+
+def test_cartao_mostra_prioridade_e_etiquetas(aplicacao, base):
+    from econt.dados.atividades import criar_etiqueta
+
+    c = base.conexao
+    banco = criar_etiqueta(c, "Banco", "info")
+    urgente = criar_etiqueta(c, "Urgente", "perigo")
+    a = criar_atividade(
+        c, A_FAZER, DadosAtividade("Pagar", prioridade=3, etiquetas=[urgente, banco])
+    )
+    b = criar_atividade(c, A_FAZER, DadosAtividade("Conferir"))
+    pagina = _pagina(base)
+    marcas = pagina.cartao(a).marcas
+    assert [(m.text(), m.property("etiqueta")) for m in marcas] == [
+        ("▲ Alta", "perigo"),
+        ("Banco", "info"),
+        ("Urgente", "perigo"),
+    ]
+    assert "Prioridade alta" in pagina.cartao(a).accessibleName()
+    assert "Etiquetas Banco, Urgente" in pagina.cartao(a).accessibleName()
+    assert pagina.cartao(b).marcas == []
+    pagina.busca.setText("urgente")
+    assert _na_tela(pagina, A_FAZER) == ["Pagar"]
+
+
+def test_prioridade_e_etiquetas_pelo_dialogo(aplicacao, base, monkeypatch):
+    from econt.dados.atividades import criar_etiqueta, listar_etiquetas
+
+    banco = criar_etiqueta(base.conexao, "Banco", "info")
+    pagina = _pagina(base)
+    dialogo = pagina.criar_dialogo_atividade(A_FAZER, None)
+    dialogo.show()
+    assert dialogo.prioridade.valor() == 0
+    dialogo.titulo.definir("Pagar energia")
+    dialogo.prioridade.definir(2)
+    lista = dialogo.lista_etiquetas
+    lista.setFocus()
+    lista.setCurrentRow(0)
+    QTest.keyClick(lista, Qt.Key.Key_Space)  # Espaço marca
+    assert lista.marcadas() == [banco]
+
+    def nova(etiqueta):
+        etiqueta.nome.definir("Urgente")
+        etiqueta.cor.definir("perigo")
+
+    _responder(monkeypatch, dialogos.DialogoEtiqueta, nova)
+    dialogo.nova_etiqueta.click()
+    urgente = next(e.id for e in listar_etiquetas(base.conexao) if e.nome == "Urgente")
+    assert sorted(lista.marcadas()) == sorted([banco, urgente])  # a nova já vem marcada
+    dialogo.ao_confirmar()
+    atividade = obter_atividade(base.conexao, dialogo.atividade_id)
+    assert atividade.nome_da_prioridade == "Média"
+    assert [e.nome for e in atividade.marcas] == ["Banco", "Urgente"]
+
+    editar = pagina.criar_dialogo_atividade(0, atividade.id)
+    assert editar.prioridade.valor() == 2
+    assert sorted(editar.lista_etiquetas.marcadas()) == sorted([banco, urgente])
+
+
+def test_dialogo_das_etiquetas(aplicacao, base, monkeypatch):
+    from econt.dados.atividades import criar_etiqueta, listar_etiquetas
+
+    banco = criar_etiqueta(base.conexao, "Banco", "info")
+    a = criar_atividade(base.conexao, A_FAZER, DadosAtividade("Pagar", etiquetas=[banco]))
+    pagina = _pagina(base)
+    dialogo = dialogos.DialogoEtiquetas(pagina, base)
+    assert dialogo.tabela.item(0, 0).text() == "Banco"
+    assert dialogo.tabela.item(0, 1).text() == "Azul"
+    assert dialogo.tabela.item(0, 2).text() == "1"
+
+    _responder(monkeypatch, dialogos.DialogoEtiqueta, lambda d: d.nome.definir("banco"))
+    dialogo.nova.click()  # nome repetido não passa
+    assert len(listar_etiquetas(base.conexao)) == 1
+
+    def renomear(etiqueta):
+        assert etiqueta.nome.valor() == "Banco"
+        etiqueta.nome.definir("Bancos")
+        etiqueta.cor.definir("sucesso")
+
+    _responder(monkeypatch, dialogos.DialogoEtiqueta, renomear)
+    dialogo.editar.click()
+    assert [(e.nome, e.cor) for e in listar_etiquetas(base.conexao)] == [("Bancos", "sucesso")]
+
+    perguntas = []
+    monkeypatch.setattr(dialogos, "perguntar", lambda *args: perguntas.append(args[2]) or True)
+    dialogo.excluir.click()
+    assert "Ela sai de 1 atividade" in perguntas[-1]
+    assert listar_etiquetas(base.conexao) == [] and dialogo.vazia.isVisibleTo(dialogo)
+    assert obter_atividade(base.conexao, a).marcas == []
+
+    _responder(monkeypatch, telas.DialogoEtiquetas, lambda d: setattr(d, "mudou", True))
+    pagina.etiquetas.click()
+    assert pagina.cartao(a).marcas == []

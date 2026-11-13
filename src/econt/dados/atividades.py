@@ -1,4 +1,5 @@
-"""Quadro de atividades da entidade: colunas (RF27) e atividades (RF28 a RF31).
+"""Quadro de atividades da entidade: colunas (RF27), atividades (RF28 a RF31), etiquetas
+(RF32) e prioridade (RF33).
 
 As posições são inteiros a partir de 1, sem buracos, entre as atividades ativas de cada
 coluna (RN16). Toda mudança que mexe em posições roda numa transação: se algo falha, nada
@@ -8,15 +9,18 @@ muda. As funções que dependem da data recebem `hoje`, para os testes controlar
 from __future__ import annotations
 
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 
 from econt.dominio.atividades import (
     ATRASADA,
     CONCLUIDA,
+    CORES_DE_ETIQUETA,
+    PRIORIDADES,
     VENCE_HOJE,
     AtividadeInvalida,
     problema_do_nome_da_coluna,
+    problema_do_nome_da_etiqueta,
     problema_do_titulo,
     situacao_do_prazo,
 )
@@ -181,6 +185,114 @@ def excluir_coluna(conexao: sqlite3.Connection, coluna_id: int) -> None:
         _renumerar_colunas(conexao, [c.id for c in colunas if c.id != coluna_id])
 
 
+# Etiquetas -------------------------------------------------------------------------------
+
+
+class EtiquetaInvalida(ValueError):
+    pass
+
+
+@dataclass
+class Etiqueta:
+    id: int
+    nome: str
+    cor: str
+
+    @property
+    def nome_da_cor(self) -> str:
+        return CORES_DE_ETIQUETA.get(self.cor, "")
+
+
+def listar_etiquetas(conexao: sqlite3.Connection) -> list[Etiqueta]:
+    linhas = conexao.execute(
+        "SELECT id, nome, cor FROM etiqueta ORDER BY nome COLLATE NOCASE, id"
+    ).fetchall()
+    return [Etiqueta(*linha) for linha in linhas]
+
+
+def obter_etiqueta(conexao: sqlite3.Connection, etiqueta_id: int) -> Etiqueta:
+    linha = conexao.execute(
+        "SELECT id, nome, cor FROM etiqueta WHERE id = ?", (etiqueta_id,)
+    ).fetchone()
+    if linha is None:
+        raise EtiquetaInvalida("Etiqueta não encontrada. Feche a janela e abra de novo.")
+    return Etiqueta(*linha)
+
+
+def problema_da_etiqueta(
+    conexao: sqlite3.Connection, nome: str, ignorar_id: int | None = None
+) -> str | None:
+    outros = [e.nome for e in listar_etiquetas(conexao) if e.id != ignorar_id]
+    return problema_do_nome_da_etiqueta(nome, outros)
+
+
+def _validar_etiqueta(
+    conexao: sqlite3.Connection, nome: str, cor: str, ignorar_id: int | None = None
+) -> tuple[str, str]:
+    if erro := problema_da_etiqueta(conexao, nome, ignorar_id):
+        raise EtiquetaInvalida(erro)
+    if cor not in CORES_DE_ETIQUETA:
+        raise EtiquetaInvalida("Escolha a cor da etiqueta na lista.")
+    return nome.strip(), cor
+
+
+def criar_etiqueta(conexao: sqlite3.Connection, nome: str, cor: str = "neutra") -> int:
+    nome, cor = _validar_etiqueta(conexao, nome, cor)
+    agora = _agora()
+    with conexao:
+        cursor = conexao.execute(
+            "INSERT INTO etiqueta (nome, cor, criado_em, alterado_em) VALUES (?, ?, ?, ?)",
+            (nome, cor, agora, agora),
+        )
+    return cursor.lastrowid
+
+
+def editar_etiqueta(conexao: sqlite3.Connection, etiqueta_id: int, nome: str, cor: str) -> None:
+    obter_etiqueta(conexao, etiqueta_id)
+    nome, cor = _validar_etiqueta(conexao, nome, cor, etiqueta_id)
+    with conexao:
+        conexao.execute(
+            "UPDATE etiqueta SET nome = ?, cor = ?, alterado_em = ? WHERE id = ?",
+            (nome, cor, _agora(), etiqueta_id),
+        )
+
+
+def atividades_com_etiqueta(conexao: sqlite3.Connection, etiqueta_id: int) -> int:
+    """Quantas atividades, no quadro ou arquivadas, usam a etiqueta."""
+    return conexao.execute(
+        "SELECT count(*) FROM atividade_etiqueta WHERE etiqueta_id = ?", (etiqueta_id,)
+    ).fetchone()[0]
+
+
+def excluir_etiqueta(conexao: sqlite3.Connection, etiqueta_id: int) -> None:
+    """Sai das atividades que a usam; as atividades continuam como estão (RN19)."""
+    obter_etiqueta(conexao, etiqueta_id)
+    with conexao:
+        conexao.execute("DELETE FROM atividade_etiqueta WHERE etiqueta_id = ?", (etiqueta_id,))
+        conexao.execute("DELETE FROM etiqueta WHERE id = ?", (etiqueta_id,))
+
+
+def _etiquetas_das_atividades(conexao: sqlite3.Connection, atividades: list[Atividade]) -> None:
+    """Preenche as etiquetas de cada atividade, numa consulta só."""
+    if not atividades:
+        return
+    por_id = {a.id: a for a in atividades}
+    marcas = ",".join("?" * len(por_id))
+    linhas = conexao.execute(
+        f"""
+        SELECT ae.atividade_id, e.id, e.nome, e.cor
+        FROM atividade_etiqueta ae JOIN etiqueta e ON e.id = ae.etiqueta_id
+        WHERE ae.atividade_id IN ({marcas})
+        ORDER BY e.nome COLLATE NOCASE, e.id
+        """,
+        list(por_id),
+    ).fetchall()
+    for atividade_id, *etiqueta in linhas:
+        por_id[atividade_id].marcas.append(Etiqueta(*etiqueta))
+    for atividade in atividades:
+        atividade.etiquetas = [e.id for e in atividade.marcas]
+
+
 # Atividades ------------------------------------------------------------------------------
 
 
@@ -192,6 +304,8 @@ class DadosAtividade:
     descricao: str = ""
     prazo: date | None = None
     fornecedor_id: int | None = None
+    prioridade: int = 0
+    etiquetas: list[int] = field(default_factory=list)
 
 
 @dataclass
@@ -208,6 +322,11 @@ class Atividade(DadosAtividade):
     arquivado_em: datetime | None = None
     coluna_nome: str = ""
     situacao: str = ""
+    marcas: list[Etiqueta] = field(default_factory=list)  # as etiquetas, com nome e cor
+
+    @property
+    def nome_da_prioridade(self) -> str:
+        return PRIORIDADES.get(self.prioridade, "")
 
     @property
     def atrasada(self) -> bool:
@@ -222,14 +341,23 @@ class Atividade(DadosAtividade):
         return self.situacao == CONCLUIDA
 
     def combina(self, busca: str) -> bool:
-        """RF30: título, descrição e nome do fornecedor, sem diferenciar maiúsculas e acentos."""
+        """RF30: título, descrição, fornecedor e etiquetas, sem diferenciar maiúsculas e
+        acentos."""
         if not busca.strip():
             return True
-        campos = (self.titulo, self.descricao, self.fornecedor_nome, self.fornecedor_razao_social)
+        campos = [self.titulo, self.descricao, self.fornecedor_nome, self.fornecedor_razao_social]
+        campos += [e.nome for e in self.marcas]
         return any(encontrar(campo, busca) for campo in campos)
 
     def dados(self) -> DadosAtividade:
-        return DadosAtividade(self.titulo, self.descricao, self.prazo, self.fornecedor_id)
+        return DadosAtividade(
+            self.titulo,
+            self.descricao,
+            self.prazo,
+            self.fornecedor_id,
+            self.prioridade,
+            [e.id for e in self.marcas],
+        )
 
 
 @dataclass
@@ -242,7 +370,7 @@ _SELECAO = """
     SELECT a.id, a.titulo, a.descricao, a.prazo, f.id, a.coluna_id, a.posicao,
         coalesce(nullif(f.nome_fantasia, ''), f.razao_social, ''), coalesce(f.razao_social, ''),
         coalesce(f.ativo, 1), a.criado_em, a.alterado_em, a.movido_em, a.arquivado_em,
-        coalesce(c.nome, ''), coalesce(c.conclusao, 0)
+        coalesce(c.nome, ''), coalesce(c.conclusao, 0), a.prioridade
     FROM atividade a
     LEFT JOIN fornecedor f ON f.id = a.fornecedor_id
     LEFT JOIN coluna_atividade c ON c.id = a.coluna_id
@@ -267,6 +395,7 @@ def _montar(linha: tuple, hoje: date) -> Atividade:
         arquivado_em,
         coluna_nome,
         conclusao,
+        prioridade,
     ) = linha
     prazo = date.fromisoformat(prazo) if prazo else None
     return Atividade(
@@ -274,6 +403,7 @@ def _montar(linha: tuple, hoje: date) -> Atividade:
         descricao,
         prazo,
         fornecedor_id,
+        prioridade,
         id=atividade_id,
         coluna_id=coluna_id,
         posicao=posicao,
@@ -297,8 +427,9 @@ def obter_quadro(conexao: sqlite3.Connection, hoje: date | None = None) -> list[
     linhas = conexao.execute(
         _SELECAO + " WHERE a.arquivado_em IS NULL ORDER BY a.coluna_id, a.posicao"
     ).fetchall()
-    for linha in linhas:
-        atividade = _montar(linha, hoje)
+    atividades = [_montar(linha, hoje) for linha in linhas]
+    _etiquetas_das_atividades(conexao, atividades)
+    for atividade in atividades:
         if atividade.coluna_id in por_id:
             por_id[atividade.coluna_id].atividades.append(atividade)
     return quadro
@@ -310,7 +441,9 @@ def obter_atividade(
     linha = conexao.execute(_SELECAO + " WHERE a.id = ?", (atividade_id,)).fetchone()
     if linha is None:
         raise AtividadeInvalida("Atividade não encontrada. Feche a janela e abra o quadro de novo.")
-    return _montar(linha, hoje or date.today())
+    atividade = _montar(linha, hoje or date.today())
+    _etiquetas_das_atividades(conexao, [atividade])
+    return atividade
 
 
 def listar_arquivadas(conexao: sqlite3.Connection, hoje: date | None = None) -> list[Atividade]:
@@ -318,7 +451,9 @@ def listar_arquivadas(conexao: sqlite3.Connection, hoje: date | None = None) -> 
     linhas = conexao.execute(
         _SELECAO + " WHERE a.arquivado_em IS NOT NULL ORDER BY a.arquivado_em DESC, a.id DESC"
     ).fetchall()
-    return [_montar(linha, hoje or date.today()) for linha in linhas]
+    atividades = [_montar(linha, hoje or date.today()) for linha in linhas]
+    _etiquetas_das_atividades(conexao, atividades)
+    return atividades
 
 
 def problemas_da_atividade(conexao: sqlite3.Connection, dados: DadosAtividade) -> dict[str, str]:
@@ -333,6 +468,11 @@ def problemas_da_atividade(conexao: sqlite3.Connection, dados: DadosAtividade) -
         ).fetchone()
     ):
         erros["fornecedor"] = "Fornecedor não encontrado. Escolha um fornecedor da lista."
+    if dados.prioridade not in PRIORIDADES:
+        erros["prioridade"] = "Escolha a prioridade na lista."
+    existentes = {e.id for e in listar_etiquetas(conexao)}
+    if any(etiqueta not in existentes for etiqueta in dados.etiquetas):
+        erros["etiquetas"] = "Uma das etiquetas não existe mais. Feche e abra a atividade de novo."
     return erros
 
 
@@ -341,7 +481,21 @@ def _validar(conexao: sqlite3.Connection, dados: DadosAtividade) -> tuple:
     if erros:
         raise AtividadeInvalida(" ".join(erros.values()))
     prazo = dados.prazo.isoformat() if dados.prazo else None
-    return dados.titulo.strip(), dados.descricao.strip(), prazo, dados.fornecedor_id
+    return (
+        dados.titulo.strip(),
+        dados.descricao.strip(),
+        prazo,
+        dados.fornecedor_id,
+        dados.prioridade,
+    )
+
+
+def _gravar_etiquetas(conexao: sqlite3.Connection, atividade_id: int, etiquetas: list[int]):
+    conexao.execute("DELETE FROM atividade_etiqueta WHERE atividade_id = ?", (atividade_id,))
+    conexao.executemany(
+        "INSERT INTO atividade_etiqueta (atividade_id, etiqueta_id) VALUES (?, ?)",
+        [(atividade_id, etiqueta) for etiqueta in dict.fromkeys(etiquetas)],
+    )
 
 
 def _ordem(conexao: sqlite3.Connection, coluna_id: int) -> list[int]:
@@ -369,12 +523,13 @@ def criar_atividade(conexao: sqlite3.Connection, coluna_id: int, dados: DadosAti
         posicao = len(_ordem(conexao, coluna_id)) + 1
         cursor = conexao.execute(
             """
-            INSERT INTO atividade (titulo, descricao, prazo, fornecedor_id, coluna_id, posicao,
-                criado_em, alterado_em, movido_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO atividade (titulo, descricao, prazo, fornecedor_id, prioridade,
+                coluna_id, posicao, criado_em, alterado_em, movido_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (*valores, coluna_id, posicao, agora, agora, agora),
         )
+        _gravar_etiquetas(conexao, cursor.lastrowid, dados.etiquetas)
     return cursor.lastrowid
 
 
@@ -385,11 +540,12 @@ def editar_atividade(conexao: sqlite3.Connection, atividade_id: int, dados: Dado
         conexao.execute(
             """
             UPDATE atividade SET titulo = ?, descricao = ?, prazo = ?, fornecedor_id = ?,
-                alterado_em = ?
+                prioridade = ?, alterado_em = ?
             WHERE id = ?
             """,
             (*valores, _agora(), atividade_id),
         )
+        _gravar_etiquetas(conexao, atividade_id, dados.etiquetas)
 
 
 def _registrar_movimento(
@@ -497,6 +653,7 @@ def excluir_atividade(conexao: sqlite3.Connection, atividade_id: int) -> None:
         )
     with conexao:
         conexao.execute("DELETE FROM movimento_atividade WHERE atividade_id = ?", (atividade_id,))
+        conexao.execute("DELETE FROM atividade_etiqueta WHERE atividade_id = ?", (atividade_id,))
         conexao.execute("DELETE FROM atividade WHERE id = ?", (atividade_id,))
         _renumerar(conexao, _ordem(conexao, atividade.coluna_id))
 

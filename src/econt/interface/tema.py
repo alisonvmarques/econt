@@ -26,6 +26,15 @@ CORES = {
     "status/danger-bg": "#F1DADA",
 }
 
+# Cor do texto (e da bolinha nas listas) de cada cor de etiqueta, com os tokens acima.
+CORES_DAS_ETIQUETAS = {
+    "neutra": "text/secondary",
+    "info": "accent/default",
+    "sucesso": "status/success",
+    "atencao": "status/warning",
+    "perigo": "status/danger",
+}
+
 FONTES = '"Inter", "Segoe UI", "Ubuntu", "Helvetica Neue", "Arial", sans-serif'
 
 
@@ -129,6 +138,13 @@ QLabel[etiqueta="perigo"] { background: $status/danger-bg; color: $status/danger
   border: 1px solid $status/danger; }
 QLabel[etiqueta="sucesso"] { background: $status/success-bg; color: $status/success;
   border: 1px solid $status/success-bg; }
+QLabel[etiqueta="info"] { background: $accent/subtle; color: $accent/default;
+  border: 1px solid $accent/subtle; }
+QListWidget { background: $bg/surface; border: 1px solid $border/input; border-radius: 6px;
+  padding: 4px; outline: none; }
+QListWidget:focus { border: 2px solid $accent/default; padding: 3px; }
+QListWidget::item { padding: 4px 6px; border-radius: 4px; }
+QListWidget::item:selected { background: $bg/selected; color: $text/primary; }
 QPlainTextEdit { background: $bg/surface; border: 1px solid $border/input; border-radius: 6px;
   padding: 6px 8px; }
 QPlainTextEdit:focus { border: 2px solid $accent/default; padding: 5px 7px; }

@@ -52,6 +52,7 @@ from econt.interface.dialogos_atividades import (
     DialogoArquivadas,
     DialogoAtividade,
     DialogoColuna,
+    DialogoEtiquetas,
 )
 
 TIPO_ARRASTE = "application/x-econt-atividade"
@@ -93,6 +94,47 @@ def texto_do_prazo(atividade: Atividade) -> tuple[str, str | None]:
     return f"Prazo {prazo}", None
 
 
+# Prioridade no cartão: (texto, papel da etiqueta). A palavra diz a prioridade; a cor reforça.
+MARCA_DA_PRIORIDADE = {
+    3: ("▲ Alta", "perigo"),
+    2: ("● Média", "atencao"),
+    1: ("▼ Baixa", "neutra"),
+}
+LARGURA_UTIL_DO_CARTAO = LARGURA_COLUNA - 74  # margens da coluna, do cartão e a rolagem
+
+
+def marcas_do_cartao(atividade: Atividade) -> list[tuple[str, str]]:
+    """Prioridade (se houver) e depois as etiquetas, na ordem do nome."""
+    marcas = []
+    if atividade.prioridade in MARCA_DA_PRIORIDADE:
+        marcas.append(MARCA_DA_PRIORIDADE[atividade.prioridade])
+    marcas += [(e.nome, e.cor) for e in atividade.marcas]
+    return marcas
+
+
+def em_linhas(pecas: list[QWidget], largura: int, espaco: int = 4) -> QVBoxLayout:
+    """Põe as peças lado a lado e passa para a linha de baixo quando não cabem."""
+    linhas = QVBoxLayout()
+    linhas.setSpacing(espaco)
+    linha: QHBoxLayout | None = None
+    usado = 0
+    for peca in pecas:
+        peca.ensurePolished()
+        medida = peca.sizeHint().width()
+        if linha is None or usado + medida > largura:
+            if linha is not None:
+                linha.addStretch()
+            linha = QHBoxLayout()
+            linha.setSpacing(espaco)
+            linhas.addLayout(linha)
+            usado = 0
+        linha.addWidget(peca)
+        usado += medida + espaco
+    if linha is not None:
+        linha.addStretch()
+    return linhas
+
+
 class CartaoAtividade(QFrame):
     """Um cartão do quadro. Enter ou duplo clique abrem; Ctrl+setas movem (RNF05)."""
 
@@ -113,6 +155,13 @@ class CartaoAtividade(QFrame):
         self.titulo.setStyleSheet("font-weight: 500;")
         layout.addWidget(self.titulo)
         partes = [atividade.titulo]
+        self.marcas = [etiqueta(nome, tipo) for nome, tipo in marcas_do_cartao(atividade)]
+        if self.marcas:
+            layout.addLayout(em_linhas(self.marcas, LARGURA_UTIL_DO_CARTAO))
+        if atividade.prioridade:
+            partes.append(f"Prioridade {atividade.nome_da_prioridade.lower()}")
+        if atividade.marcas:
+            partes.append("Etiquetas " + ", ".join(e.nome for e in atividade.marcas))
         rotulo, tipo = texto_do_prazo(atividade)
         self.prazo: QLabel | None = None
         if rotulo:
@@ -419,15 +468,18 @@ class PaginaAtividades(QWidget):
         topo = QHBoxLayout()
         topo.setSpacing(12)
         self.busca = QLineEdit()
-        self.busca.setPlaceholderText("Buscar por título, descrição ou fornecedor")
+        self.busca.setPlaceholderText("Buscar por título, descrição, fornecedor ou etiqueta")
         self.busca.setAccessibleName("Buscar atividades")
         self.busca.setClearButtonEnabled(True)
         self.busca.setMaximumWidth(420)
         self.nova_coluna = botao("Nova coluna")
         self.arquivadas = botao("Mostrar arquivadas")
+        self.etiquetas = botao("Etiquetas")
+        self.etiquetas.setToolTip("Criar, mudar e excluir as etiquetas")
         topo.addWidget(self.busca, 1)
         topo.addStretch()
         topo.addWidget(self.nova_coluna)
+        topo.addWidget(self.etiquetas)
         topo.addWidget(self.arquivadas)
         layout.addLayout(topo)
 
@@ -450,6 +502,7 @@ class PaginaAtividades(QWidget):
         self.busca.returnPressed.connect(self._focar_primeiro)
         self.nova_coluna.clicked.connect(lambda: self.editar_coluna(None))
         self.arquivadas.clicked.connect(self.mostrar_arquivadas)
+        self.etiquetas.clicked.connect(self.mostrar_etiquetas)
         self.atualizar()
 
     def showEvent(self, evento) -> None:  # noqa: N802 (nome do Qt)
@@ -620,6 +673,12 @@ class PaginaAtividades(QWidget):
         pode, antes = coluna.antes_de_vizinho(atividade_id, passo)
         if pode:
             self.soltar(atividade_id, coluna.coluna.id, antes)
+
+    def mostrar_etiquetas(self) -> None:
+        dialogo = DialogoEtiquetas(self, self.base)
+        dialogo.exec()
+        if dialogo.mudou:
+            self.atualizar()
 
     def mostrar_arquivadas(self) -> None:
         dialogo = DialogoArquivadas(self, self.base)
