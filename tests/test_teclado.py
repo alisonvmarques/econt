@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
+from econt.dados.atividades import obter_quadro
 from econt.dados.banco import BaseDeDados
 from econt.dados.contas import DadosConta, cadastrar_conta, listar_contas, obter_conta
 from econt.dados.entidade import Entidade, salvar_entidade
@@ -19,6 +20,7 @@ from econt.dados.fornecedores import (
 from econt.dados.marcacoes import itens_do_fornecedor, marcacoes_do_item
 from econt.interface.area_principal import AreaPrincipal
 from econt.interface.contas import PaginaContas
+from econt.interface.dialogos_atividades import DialogoAtividade
 from econt.interface.fornecedores import PaginaFornecedores
 
 SENHA = "fundo2026saude"
@@ -133,3 +135,45 @@ def test_marcacoes_com_tab_e_espaco(aplicacao, base):
     caixa.setFocus()
     QTest.keyClick(caixa, Qt.Key.Key_Space)
     assert marcacoes_do_item(base.conexao, item)
+
+
+def test_atividade_so_pelo_teclado(aplicacao, base, monkeypatch):
+    """Ctrl+5 abre as Atividades; cria, abre com Enter e move com Ctrl+setas, e fica gravado."""
+    area = _mostrar(AreaPrincipal(base))
+    QTest.keyClick(area, Qt.Key.Key_5, Qt.KeyboardModifier.ControlModifier)
+    assert area.area_atual() == "atividades"
+    pagina = area.indice["atividades"]
+    abertos = []
+
+    def preencher(dialogo):
+        dialogo.show()
+        abertos.append(dialogo.atividade_id)
+        if dialogo.atividade_id is None:
+            QTest.keyClicks(dialogo.titulo.caixa, "Conferir notas de outubro")
+            QTest.keyClick(dialogo.descricao.caixa, Qt.Key.Key_Tab)
+            assert dialogo.descricao.caixa.toPlainText() == ""  # Tab sai da descrição
+            QTest.keyClicks(dialogo.prazo.caixa, "20/11/2026")
+            QTest.keyClick(dialogo.prazo.caixa, Qt.Key.Key_Return)
+        else:
+            QTest.keyClick(dialogo, Qt.Key.Key_Escape)
+        return dialogo.result()
+
+    monkeypatch.setattr(DialogoAtividade, "exec", preencher)
+    primeira = pagina.colunas[0].nova_atividade
+    primeira.setFocus()
+    QTest.keyClick(primeira, Qt.Key.Key_Space)
+    cartao = QApplication.focusWidget()
+    assert cartao.atividade.titulo == "Conferir notas de outubro"
+    QTest.keyClick(cartao, Qt.Key.Key_Return)
+    assert abertos[-1] == cartao.atividade.id
+    QTest.keyClick(
+        QApplication.focusWidget(), Qt.Key.Key_Right, Qt.KeyboardModifier.ControlModifier
+    )
+    QTest.keyClick(
+        QApplication.focusWidget(), Qt.Key.Key_Right, Qt.KeyboardModifier.ControlModifier
+    )
+    assert QApplication.focusWidget().atividade.coluna_nome == "Concluído"
+
+    aberta = BaseDeDados.abrir(base.cofre.caminho, senha=SENHA)
+    quadro = {item.coluna.nome: item.atividades for item in obter_quadro(aberta.conexao)}
+    assert [a.titulo for a in quadro["Concluído"]] == ["Conferir notas de outubro"]

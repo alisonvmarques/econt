@@ -129,6 +129,32 @@ QLabel[etiqueta="perigo"] { background: $status/danger-bg; color: $status/danger
   border: 1px solid $status/danger; }
 QLabel[etiqueta="sucesso"] { background: $status/success-bg; color: $status/success;
   border: 1px solid $status/success-bg; }
+QPlainTextEdit { background: $bg/surface; border: 1px solid $border/input; border-radius: 6px;
+  padding: 6px 8px; }
+QPlainTextEdit:focus { border: 2px solid $accent/default; padding: 5px 7px; }
+QScrollArea { background: transparent; border: none; }
+QScrollArea > QWidget > QWidget { background: transparent; }
+QMenu { background: $bg/surface; border: 1px solid $border/default; padding: 4px; }
+QMenu::item { padding: 6px 20px 6px 12px; border-radius: 4px; }
+QMenu::item:selected { background: $bg/selected; color: $text/primary; }
+QMenu::item:disabled { color: $text/placeholder; }
+QMenu::separator { height: 1px; background: $border/default; margin: 4px 8px; }
+#coluna_quadro { background: $bg/sidebar; border: 1px solid $border/default; border-radius: 8px; }
+#cartao_atividade { background: $bg/surface; border: 1px solid $border/default;
+  border-radius: 6px; }
+#cartao_atividade:hover { border-color: $border/input; }
+#cartao_atividade:focus { border: 2px solid $accent/default; }
+#cartao_atividade[prazo="atrasada"] { border-left: 4px solid $status/danger; }
+#cartao_atividade[prazo="hoje"] { border-left: 4px solid $status/warning; }
+#cartao_atividade[prazo="atrasada"]:focus, #cartao_atividade[prazo="hoje"]:focus {
+  border-top: 2px solid $accent/default; border-right: 2px solid $accent/default;
+  border-bottom: 2px solid $accent/default; }
+#indicador_soltar { background: $accent/default; border: none; border-radius: 2px; }
+QToolButton[papel="opcoes"] { background: transparent; border: 1px solid transparent;
+  border-radius: 6px; padding: 2px 8px; color: $text/secondary; font-weight: 600; }
+QToolButton[papel="opcoes"]:hover { background: $bg/surface-alt; color: $text/primary; }
+QToolButton[papel="opcoes"]:focus { border: 2px solid $accent/default; }
+QToolButton[papel="opcoes"]::menu-indicator { image: none; width: 0; }
 """
 
 
