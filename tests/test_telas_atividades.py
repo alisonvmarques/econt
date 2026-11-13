@@ -418,3 +418,16 @@ def test_inicio_avisa_atrasadas_e_de_hoje(aplicacao, base):
     inicio.atualizar()
     assert not any("atrasada" in a for a in avisos())
     assert any("vence hoje" in a for a in avisos())
+
+
+def test_quadro_so_e_remontado_quando_o_arraste_termina(aplicacao, base):
+    a, b = (criar_atividade(base.conexao, A_FAZER, DadosAtividade(t)) for t in "AB")
+    pagina = _pagina(base)
+    arrastado = pagina.cartao(a)
+    arrastado.acao.emit("arraste", a)
+    _soltar(pagina, EM_ANDAMENTO, a, _ponto_no_fim(pagina, EM_ANDAMENTO))
+    assert _titulos(base, EM_ANDAMENTO) == ["A"]  # gravado na hora
+    assert pagina.cartao(a) is arrastado  # mas o cartão arrastado continua de pé
+    arrastado.acao.emit("fim_do_arraste", a)
+    assert _na_tela(pagina, EM_ANDAMENTO) == ["A"] and _na_tela(pagina, A_FAZER) == ["B"]
+    assert pagina.cartao(a) is not arrastado
