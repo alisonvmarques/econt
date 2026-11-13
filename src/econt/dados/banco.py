@@ -170,6 +170,26 @@ MIGRACOES: list[str] = [
         ('Concluído', 3, 1, strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'),
             strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'));
     """,
+    # 8 · prioridade (RF33) e etiquetas das atividades (RF32, RN19). A prioridade vai de 0
+    # (sem prioridade) a 3 (alta). A cor da etiqueta é um papel do tema, nunca uma cor fixa.
+    """
+    ALTER TABLE atividade ADD COLUMN prioridade INTEGER NOT NULL DEFAULT 0
+        CHECK (prioridade BETWEEN 0 AND 3);
+    CREATE TABLE etiqueta (
+        id          INTEGER PRIMARY KEY,
+        nome        TEXT NOT NULL CHECK (length(trim(nome)) BETWEEN 1 AND 30),
+        cor         TEXT NOT NULL
+                    CHECK (cor IN ('neutra', 'info', 'sucesso', 'atencao', 'perigo')),
+        criado_em   TEXT NOT NULL,
+        alterado_em TEXT NOT NULL
+    );
+    CREATE TABLE atividade_etiqueta (
+        atividade_id INTEGER NOT NULL REFERENCES atividade (id) ON DELETE CASCADE,
+        etiqueta_id  INTEGER NOT NULL REFERENCES etiqueta (id) ON DELETE CASCADE,
+        PRIMARY KEY (atividade_id, etiqueta_id)
+    );
+    CREATE INDEX atividade_etiqueta_etiqueta ON atividade_etiqueta (etiqueta_id);
+    """,
 ]
 
 

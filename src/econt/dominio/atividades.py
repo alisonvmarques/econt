@@ -1,4 +1,5 @@
-"""Regras das atividades do quadro: título, prazo e onde o cartão cai ao soltar (RN14 a RN16).
+"""Regras das atividades do quadro: título, prazo, prioridade, etiquetas e onde o cartão cai
+ao soltar (RN14 a RN16, RN19).
 
 Atividade na coluna de conclusão conta como concluída e nunca fica atrasada (RN15).
 """
@@ -12,6 +13,19 @@ from econt.dominio.texto import normalizar
 
 TAMANHO_DO_TITULO = 120
 TAMANHO_DO_NOME_DA_COLUNA = 40
+TAMANHO_DO_NOME_DA_ETIQUETA = 30
+
+# Prioridade (RF33): 0 é sem prioridade.
+PRIORIDADES = {0: "Sem prioridade", 1: "Baixa", 2: "Média", 3: "Alta"}
+
+# Cores das etiquetas (RF32), com os papéis de etiqueta do tema.
+CORES_DE_ETIQUETA = {
+    "neutra": "Cinza",
+    "info": "Azul",
+    "sucesso": "Verde",
+    "atencao": "Amarelo",
+    "perigo": "Vermelho",
+}
 
 # Situação do prazo de uma atividade, na ordem em que pedem atenção.
 ATRASADA = "atrasada"
@@ -39,16 +53,27 @@ def problema_do_titulo(titulo: str) -> str | None:
     return None
 
 
-def problema_do_nome_da_coluna(nome: str, outros: list[str]) -> str | None:
-    """RN14: nome obrigatório e sem repetir, sem diferenciar maiúsculas e acentos."""
+def _problema_do_nome(
+    nome: str, outros: list[str], coisa: str, tamanho: int, exemplo: str
+) -> str | None:
     nome = nome.strip()
     if not nome:
-        return "Informe o nome da coluna, como Aguardando."
-    if len(nome) > TAMANHO_DO_NOME_DA_COLUNA:
-        return f"Use até {TAMANHO_DO_NOME_DA_COLUNA} caracteres no nome da coluna."
+        return f"Informe o nome da {coisa}, como {exemplo}."
+    if len(nome) > tamanho:
+        return f"Use até {tamanho} caracteres no nome da {coisa}."
     if any(normalizar(nome) == normalizar(outro.strip()) for outro in outros):
-        return f"Já existe uma coluna chamada {nome}. Escolha outro nome."
+        return f"Já existe uma {coisa} chamada {nome}. Escolha outro nome."
     return None
+
+
+def problema_do_nome_da_coluna(nome: str, outros: list[str]) -> str | None:
+    """RN14: nome obrigatório e sem repetir, sem diferenciar maiúsculas e acentos."""
+    return _problema_do_nome(nome, outros, "coluna", TAMANHO_DO_NOME_DA_COLUNA, "Aguardando")
+
+
+def problema_do_nome_da_etiqueta(nome: str, outros: list[str]) -> str | None:
+    """RN19: a mesma regra das colunas, com nomes mais curtos."""
+    return _problema_do_nome(nome, outros, "etiqueta", TAMANHO_DO_NOME_DA_ETIQUETA, "Banco")
 
 
 def ler_prazo(texto: str) -> date | None:

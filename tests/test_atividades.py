@@ -439,3 +439,87 @@ def test_posicao_ao_soltar_usa_a_ordem_real():
     assert posicao_ao_soltar(ordem, 20, 20) == 2  # solto em cima de si mesmo
     # Com a busca escondendo 20 e 30, soltar antes de 40 continua sendo antes de 40.
     assert posicao_ao_soltar(ordem, 99, 40) == 4
+
+
+# Etiquetas e prioridade ------------------------------------------------------------------
+
+
+def test_base_da_versao_7_ganha_etiquetas_e_prioridade(tmp_path, monkeypatch, base):
+    caminho = tmp_path / "v7.econt"
+    monkeypatch.setattr("econt.dados.banco.MIGRACOES", MIGRACOES[:7])
+    antiga = BaseDeDados.criar(caminho, SENHA)[0]
+    antiga.conexao.execute(  # direto no banco: o código de hoje já espera as etiquetas
+        "INSERT INTO atividade (titulo, coluna_id, posicao, criado_em, alterado_em, movido_em)"
+        " VALUES ('Já existia', 1, 1, '2026-11-13T09:00:00', '2026-11-13T09:00:00',"
+        " '2026-11-13T09:00:00')"
+    )
+    antiga.fechar()
+    monkeypatch.undo()
+    aberta = BaseDeDados.abrir(caminho, senha=SENHA)
+    assert _estrutura(aberta.conexao) == _estrutura(base.conexao)
+    (atividade,) = obter_quadro(aberta.conexao)[0].atividades
+    assert (atividade.titulo, atividade.prioridade, atividade.marcas) == ("Já existia", 0, [])
+
+
+def test_etiqueta_nome_obrigatorio_sem_repetir_e_cor_do_tema(c):
+    from econt.dados.atividades import (
+        EtiquetaInvalida,
+        criar_etiqueta,
+        editar_etiqueta,
+        listar_etiquetas,
+    )
+
+    with pytest.raises(EtiquetaInvalida, match="Informe o nome da etiqueta"):
+        criar_etiqueta(c, " ")
+    banco = criar_etiqueta(c, " Banco ", "info")
+    with pytest.raises(EtiquetaInvalida, match="Já existe uma etiqueta chamada BANCO"):
+        criar_etiqueta(c, "BANCO")
+    with pytest.raises(EtiquetaInvalida, match="até 30 caracteres"):
+        criar_etiqueta(c, "x" * 31)
+    with pytest.raises(EtiquetaInvalida, match="cor"):
+        criar_etiqueta(c, "Urgente", "#ff0000")
+    urgente = criar_etiqueta(c, "Urgente", "perigo")
+    editar_etiqueta(c, banco, "Banco", "sucesso")
+    assert [(e.id, e.nome, e.cor, e.nome_da_cor) for e in listar_etiquetas(c)] == [
+        (banco, "Banco", "sucesso", "Verde"),
+        (urgente, "Urgente", "perigo", "Vermelho"),
+    ]
+
+
+def test_atividade_com_prioridade_e_etiquetas(c):
+    from econt.dados.atividades import (
+        atividades_com_etiqueta,
+        criar_etiqueta,
+        excluir_etiqueta,
+    )
+
+    banco = criar_etiqueta(c, "Banco", "info")
+    urgente = criar_etiqueta(c, "Urgente", "perigo")
+    a = criar_atividade(
+        c, A_FAZER, DadosAtividade("Pagar", prioridade=3, etiquetas=[urgente, banco, banco])
+    )
+    atividade = obter_atividade(c, a)
+    assert (atividade.prioridade, atividade.nome_da_prioridade) == (3, "Alta")
+    assert [e.nome for e in atividade.marcas] == ["Banco", "Urgente"]
+    assert atividade.dados().etiquetas == [banco, urgente]
+    assert atividade.combina("urgente")
+    assert [e.nome for e in obter_quadro(c)[0].atividades[0].marcas] == ["Banco", "Urgente"]
+
+    editar_atividade(c, a, DadosAtividade("Pagar", prioridade=1, etiquetas=[banco]))
+    atividade = obter_atividade(c, a)
+    assert (atividade.nome_da_prioridade, [e.nome for e in atividade.marcas]) == (
+        "Baixa",
+        ["Banco"],
+    )
+    with pytest.raises(AtividadeInvalida, match="prioridade"):
+        editar_atividade(c, a, DadosAtividade("Pagar", prioridade=7))
+    with pytest.raises(AtividadeInvalida, match="etiquetas não existe"):
+        editar_atividade(c, a, DadosAtividade("Pagar", etiquetas=[999]))
+
+    assert atividades_com_etiqueta(c, banco) == 1
+    excluir_etiqueta(c, banco)  # a atividade continua, só sem a etiqueta
+    assert obter_atividade(c, a).marcas == []
+    arquivar_atividade(c, a)
+    assert listar_arquivadas(c)[0].nome_da_prioridade == "Baixa"
+    excluir_atividade(c, a)
+    assert c.execute("SELECT count(*) FROM atividade_etiqueta").fetchone()[0] == 0
