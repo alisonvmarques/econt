@@ -431,3 +431,34 @@ def test_quadro_so_e_remontado_quando_o_arraste_termina(aplicacao, base):
     arrastado.acao.emit("fim_do_arraste", a)
     assert _na_tela(pagina, EM_ANDAMENTO) == ["A"] and _na_tela(pagina, A_FAZER) == ["B"]
     assert pagina.cartao(a) is not arrastado
+
+
+def test_fornecedor_aparece_enquanto_digita(aplicacao, base):
+    c = base.conexao
+    cadastrar_fornecedor(c, DadosFornecedor("pj", "11.222.333/0001-81", "Distribuidora Exemplo"))
+    lab = cadastrar_fornecedor(
+        c,
+        DadosFornecedor(
+            "pj", "11.444.777/0001-61", "Laboratório Modelo Ltda", nome_fantasia="Lab Saúde"
+        ),
+    )
+    pagina = _pagina(base)
+    dialogo = pagina.criar_dialogo_atividade(A_FAZER, None)
+    dialogo.show()
+    campo = dialogo.fornecedor
+    assert campo.caixa.currentText() == ""  # sem fornecedor: vazio, pronto para digitar
+    QTest.keyClicks(campo.caixa.lineEdit(), "laboratorio")
+    assert campo.sugestoes() == ["Laboratório Modelo Ltda (Lab Saúde)"]
+    campo.caixa.lineEdit().clear()
+    QTest.keyClicks(campo.caixa.lineEdit(), "SAUDE")  # sem acento e em maiúsculas
+    assert campo.sugestoes() == ["Laboratório Modelo Ltda (Lab Saúde)"]
+    campo.caixa.lineEdit().clear()
+    QTest.keyClicks(campo.caixa.lineEdit(), "11444")  # pelo CNPJ
+    assert campo.sugestoes() == ["Laboratório Modelo Ltda (Lab Saúde)"]
+    popup = campo.caixa.completer().popup()
+    QTest.keyClick(popup, Qt.Key.Key_Down)
+    QTest.keyClick(popup, Qt.Key.Key_Return)
+    assert campo.valor() == lab
+    dialogo.titulo.definir("Pedir certidão")
+    dialogo.ao_confirmar()
+    assert obter_atividade(c, dialogo.atividade_id).fornecedor_id == lab

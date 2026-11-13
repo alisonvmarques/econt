@@ -33,6 +33,7 @@ from econt.dominio.atividades import (
     formatar_prazo,
     ler_prazo,
 )
+from econt.dominio.formatos import data_ao_digitar
 from econt.interface.componentes import (
     Campo,
     CampoBase,
@@ -41,12 +42,11 @@ from econt.interface.componentes import (
     Tabela,
     botao,
     confirmar_rapido,
+    formatar_ao_digitar,
     linha_de_acoes,
     perguntar,
     texto,
 )
-
-SEM_FORNECEDOR = 0
 
 
 def _data_hora(momento) -> str:
@@ -99,16 +99,25 @@ class DialogoAtividade(Dialogo):
         self.prazo = Campo("Prazo", "Opcional. Só a data, assim: 25/11/2026.")
         self.prazo.caixa.setPlaceholderText("dd/mm/aaaa")
         self.prazo.caixa.setMaxLength(10)
-        opcoes = [(SEM_FORNECEDOR, "Sem fornecedor")]
-        for f in listar_fornecedores(base.conexao):
-            opcoes.append((f.id, self._nome_do_fornecedor(f.razao_social, f.nome_fantasia)))
+        formatar_ao_digitar(self.prazo.caixa, data_ao_digitar)
+        opcoes = [
+            (
+                f.id,
+                self._nome_do_fornecedor(f.razao_social, f.nome_fantasia),
+                f"{f.documento} {f.documento_formatado}",
+            )
+            for f in listar_fornecedores(base.conexao)
+        ]
         if atividade and atividade.fornecedor_id and not atividade.fornecedor_ativo:
             nome = self._nome_do_fornecedor(
                 atividade.fornecedor_razao_social, atividade.fornecedor_nome
             )
             opcoes.append((atividade.fornecedor_id, f"{nome} (inativo)"))
         self.fornecedor = CampoEscolha(
-            "Fornecedor", opcoes, "Opcional. Digite parte do nome para filtrar.", busca=True
+            "Fornecedor",
+            opcoes,
+            "Opcional. Digite parte do nome ou do CNPJ e escolha na lista.",
+            busca=True,
         )
         self.fornecedor.caixa.lineEdit().setPlaceholderText("Sem fornecedor")
         for campo in (self.titulo, self.descricao):
@@ -123,7 +132,7 @@ class DialogoAtividade(Dialogo):
             self.titulo.definir(atividade.titulo)
             self.descricao.caixa.setPlainText(atividade.descricao)
             self.prazo.definir(formatar_prazo(atividade.prazo))
-            self.fornecedor.definir(atividade.fornecedor_id or SEM_FORNECEDOR)
+            self._definir_fornecedor(atividade.fornecedor_id)
             datas = [f"Na coluna {atividade.coluna_nome}."]
             datas.append(f"Criada em {_data_hora(atividade.criado_em)}.")
             if atividade.alterado_em != atividade.criado_em:
@@ -133,8 +142,7 @@ class DialogoAtividade(Dialogo):
             self.datas = texto(" ".join(datas), "ajuda")
             self.corpo.addWidget(self.datas)
         else:
-            self.fornecedor.definir(SEM_FORNECEDOR)
-        self.fornecedor.caixa.lineEdit().setCursorPosition(0)  # o começo do nome à mostra
+            self._definir_fornecedor(None)
 
         self.arquivar = botao("Arquivar", "perigo") if atividade else None
         acoes = QHBoxLayout()
@@ -148,6 +156,15 @@ class DialogoAtividade(Dialogo):
         acoes.addWidget(self.confirmar)
         self.corpo.addLayout(acoes)
         self.titulo.caixa.setFocus()
+
+    def _definir_fornecedor(self, fornecedor_id: int | None) -> None:
+        """Sem fornecedor, o campo fica vazio: é só começar a digitar para buscar."""
+        if fornecedor_id:
+            self.fornecedor.definir(fornecedor_id)
+            self.fornecedor.caixa.lineEdit().setCursorPosition(0)  # o começo do nome à mostra
+        else:
+            self.fornecedor.caixa.setCurrentIndex(-1)
+            self.fornecedor.caixa.setEditText("")
 
     @staticmethod
     def _nome_do_fornecedor(razao_social: str, fantasia: str) -> str:
@@ -163,10 +180,7 @@ class DialogoAtividade(Dialogo):
         """Id do fornecedor, None para sem fornecedor, ou "" se o texto não é da lista."""
         if not self.fornecedor.caixa.currentText().strip():
             return None
-        valor = self.fornecedor.valor()
-        if valor == "":
-            return ""
-        return valor or None
+        return self.fornecedor.valor()
 
     def ao_confirmar(self) -> None:
         erros: dict[str, str] = {}

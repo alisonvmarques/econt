@@ -19,12 +19,15 @@ def aplicacao(_aplicacao_da_sessao):
     """Aplicação Qt dos testes de tela. Ao fim de cada teste, as janelas criadas por ele são
     destruídas enquanto o Qt ainda está de pé, para o encerramento não cair numa ordem
     errada de destruição."""
-    from PySide6.QtCore import QCoreApplication, QEvent
+    from PySide6.QtCore import QCoreApplication, QEvent, Qt
     from PySide6.QtWidgets import QApplication
 
     yield _aplicacao_da_sessao
     for janela in QApplication.topLevelWidgets():
         janela.close()
-        janela.deleteLater()
+        # Listas que se abrem por cima (sugestões de busca, menus) pertencem a outra peça,
+        # que as destrói junto: destruir aqui de novo derrubaria o Python.
+        if janela.windowType() != Qt.WindowType.Popup:
+            janela.deleteLater()
     QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
     gc.collect()
