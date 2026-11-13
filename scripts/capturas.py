@@ -21,6 +21,7 @@ from econt.dados.atividades import (
     DadosAtividade,
     arquivar_atividade,
     criar_atividade,
+    criar_etiqueta,
     mover_atividade,
 )
 from econt.dados.banco import BaseDeDados
@@ -106,19 +107,24 @@ def atividades_de_exemplo(c, distribuidora: int, laboratorio: int) -> None:
     """Um quadro com atividades inventadas, com prazos em volta de hoje."""
     hoje = date.today()
     a_fazer, em_andamento, concluido = 1, 2, 3
+    banco = criar_etiqueta(c, "Banco", "info")
+    contas = criar_etiqueta(c, "Prestação de contas", "sucesso")
+    documentos = criar_etiqueta(c, "Documentos", "neutra")
     exemplos = [
-        (a_fazer, "Conferir notas fiscais de outubro", -2, distribuidora, ""),
-        (a_fazer, "Pagar conta de energia da sede", 0, None, "Vence às 16h no banco."),
-        (a_fazer, "Atualizar certidões dos fornecedores", 6, None, ""),
-        (a_fazer, "Separar comprovantes para a prestação de contas", None, None, ""),
-        (em_andamento, "Pedir aumento do limite Pix da Conta Pix", 3, None, ""),
-        (em_andamento, "Cadastrar favorecido do laboratório", 1, laboratorio, ""),
-        (concluido, "Fechar o mês de setembro", -10, None, ""),
-        (concluido, "Renovar contrato de limpeza", -4, None, ""),
+        (a_fazer, "Conferir notas fiscais de outubro", -2, distribuidora, 3, [documentos]),
+        (a_fazer, "Pagar conta de energia da sede", 0, None, 2, [banco]),
+        (a_fazer, "Atualizar certidões dos fornecedores", 6, None, 1, [documentos]),
+        (a_fazer, "Separar comprovantes para a prestação de contas", None, None, 0, [contas]),
+        (em_andamento, "Pedir aumento do limite Pix da Conta Pix", 3, None, 2, [banco]),
+        (em_andamento, "Cadastrar favorecido do laboratório", 1, laboratorio, 0, [banco]),
+        (concluido, "Fechar o mês de setembro", -10, None, 0, [contas]),
+        (concluido, "Renovar contrato de limpeza", -4, None, 0, []),
     ]
-    for coluna, titulo, dias, fornecedor, descricao in exemplos:
+    for coluna, titulo, dias, fornecedor, prioridade, etiquetas in exemplos:
         prazo = hoje + timedelta(days=dias) if dias is not None else None
-        criar_atividade(c, coluna, DadosAtividade(titulo, descricao, prazo, fornecedor))
+        descricao = "Vence às 16h no banco." if dias == 0 else ""
+        dados = DadosAtividade(titulo, descricao, prazo, fornecedor, prioridade, etiquetas)
+        criar_atividade(c, coluna, dados)
     antiga = criar_atividade(c, a_fazer, DadosAtividade("Reunião com o contador"))
     mover_atividade(c, antiga, concluido, 1)
     arquivar_atividade(c, antiga)
