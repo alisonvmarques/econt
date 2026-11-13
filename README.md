@@ -2,8 +2,9 @@
 
 [![Testes](https://github.com/alisonvmarques/econt/actions/workflows/testes.yml/badge.svg)](https://github.com/alisonvmarques/econt/actions/workflows/testes.yml)
 
-Conferência de contas: sistema desktop e offline para conferir as contas dos fornecedores e
-em quais contas da entidade estão cadastradas antes de pagar.
+Sistema desktop e offline que cuida das contas e das atividades da entidade: confere as
+contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar, e
+acompanha num quadro o que o setor financeiro tem a fazer.
 
 > Versão atual: 1.0 · Versão estável.
 
@@ -26,6 +27,8 @@ ECont registra essa situação e mostra, antes de pagar, de quais contas o pagam
 - Imprime os dados para pagamento em meia folha A4, para anexar ao processo.
 - Acompanha os limites diários de Pix e de transação de cada conta da entidade, com a regra de
   24 horas para alterações.
+- Organiza as atividades da entidade num quadro (a fazer, em andamento, concluído), com
+  prazos, fornecedor ligado e aviso no Início do que está atrasado ou vence hoje.
 - Funciona totalmente offline, com os dados num arquivo criptografado
   ([como](docs/criptografia.md)), backup automático e exportação para pendrive.
 
@@ -51,7 +54,8 @@ O [guia de uso](docs/index.md) explica cada área, com capturas de tela:
 
 - [Primeiros passos](docs/primeiros-passos.md): senha, chave de recuperação e entidade.
 - [Início](docs/inicio.md), [Consulta](docs/consulta.md), [Fornecedores](docs/fornecedores.md),
-  [Entidade](docs/entidade.md) e [Configurações](docs/configuracoes.md).
+  [Entidade](docs/entidade.md), [Atividades](docs/atividades.md) e
+  [Configurações](docs/configuracoes.md).
 - [Perguntas frequentes](docs/perguntas-frequentes.md).
 
 | Início | Marcações do fornecedor |

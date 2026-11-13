@@ -11,12 +11,18 @@ from __future__ import annotations
 import os
 import sys
 import tempfile
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication
 
 from econt.app import criar_aplicacao
+from econt.dados.atividades import (
+    DadosAtividade,
+    arquivar_atividade,
+    criar_atividade,
+    mover_atividade,
+)
 from econt.dados.banco import BaseDeDados
 from econt.dados.contas import DadosConta, cadastrar_conta, registrar_pedido
 from econt.dados.entidade import Entidade, salvar_entidade
@@ -91,8 +97,31 @@ def dados_de_exemplo(caminho: Path) -> BaseDeDados:
         c, DadosFornecedor("pj", cnpj("678901230001"), "Gráfica Hipotética Ltda")
     )
     salvar_chave_pix(c, novo, "cnpj", cnpj("678901230001"))
+    atividades_de_exemplo(c, ids[0], ids[1])
     base.salvar()
     return base
+
+
+def atividades_de_exemplo(c, distribuidora: int, laboratorio: int) -> None:
+    """Um quadro com atividades inventadas, com prazos em volta de hoje."""
+    hoje = date.today()
+    a_fazer, em_andamento, concluido = 1, 2, 3
+    exemplos = [
+        (a_fazer, "Conferir notas fiscais de outubro", -2, distribuidora, ""),
+        (a_fazer, "Pagar conta de energia da sede", 0, None, "Vence às 16h no banco."),
+        (a_fazer, "Atualizar certidões dos fornecedores", 6, None, ""),
+        (a_fazer, "Separar comprovantes para a prestação de contas", None, None, ""),
+        (em_andamento, "Pedir aumento do limite Pix da Conta Pix", 3, None, ""),
+        (em_andamento, "Cadastrar favorecido do laboratório", 1, laboratorio, ""),
+        (concluido, "Fechar o mês de setembro", -10, None, ""),
+        (concluido, "Renovar contrato de limpeza", -4, None, ""),
+    ]
+    for coluna, titulo, dias, fornecedor, descricao in exemplos:
+        prazo = hoje + timedelta(days=dias) if dias is not None else None
+        criar_atividade(c, coluna, DadosAtividade(titulo, descricao, prazo, fornecedor))
+    antiga = criar_atividade(c, a_fazer, DadosAtividade("Reunião com o contador"))
+    mover_atividade(c, antiga, concluido, 1)
+    arquivar_atividade(c, antiga)
 
 
 def capturar(janela, nome: str) -> None:
@@ -144,6 +173,15 @@ def main() -> int:
         entidade = area.indice["entidade"]
         entidade.abas.setCurrentIndex(1)
         capturar(janela, "entidade-contas")
+
+        area.ir_para("atividades")
+        atividades = area.indice["atividades"]
+        atividades.focar(atividades.colunas[0].cartoes[0].id)
+        capturar(janela, "atividades")
+        dialogo = atividades.criar_dialogo_atividade(0, atividades.colunas[1].cartoes[1].id)
+        dialogo.show()
+        capturar(dialogo, "atividade-editar")
+        dialogo.close()
 
         area.ir_para("configuracoes")
         capturar(janela, "configuracoes")

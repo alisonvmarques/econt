@@ -46,7 +46,7 @@ não pede confirmação, porque não perde nada.
 Fluxos percorridos sem o mouse, em `tests/test_teclado.py`:
 
 - Entrar com a senha: Enter no campo da senha.
-- Trocar de área: Ctrl+1 a Ctrl+5, ou Tab até a barra e as setas.
+- Trocar de área: Ctrl+1 a Ctrl+6, ou Tab até a barra e as setas.
 - Consulta: digitar, Enter abre o primeiro fornecedor, o foco vai para Imprimir meia folha,
   Esc limpa a busca e a seta para baixo leva à lista.
 - Fornecedores: Enter na lista abre a ficha; no formulário, Enter em qualquer campo salva.
@@ -54,6 +54,8 @@ Fluxos percorridos sem o mouse, em `tests/test_teclado.py`:
 - Pedido de alteração de limite: Enter no novo valor registra o pedido.
 - Marcações: Tab chega a cada caixa e Espaço marca ou desmarca.
 - Abas da ficha e das Configurações: Ctrl+Tab passa para a próxima.
+- Atividades (incluídas depois da 1.0, issue #58): Nova atividade com Espaço, Enter salva o
+  diálogo, Enter no cartão abre, Ctrl+setas movem entre colunas e dentro da coluna.
 
 Encontrado e corrigido nesta revisão: nos formulários que ficam na própria página (novo
 fornecedor, dados da entidade e pedido de limite), Enter não salvava; só os diálogos
