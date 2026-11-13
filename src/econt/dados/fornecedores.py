@@ -237,7 +237,9 @@ def definir_fornecedor_ativo(conexao: sqlite3.Connection, fornecedor_id: int, at
 
 
 def excluir_fornecedor(conexao: sqlite3.Connection, fornecedor_id: int) -> None:
-    """Só sem histórico de cadastros; com histórico, apenas inativar (RN05)."""
+    """Só sem histórico de cadastros; com histórico, apenas inativar (RN05).
+
+    As atividades ligadas a ele continuam no quadro, só sem o vínculo (RN18)."""
     if tem_historico(conexao, fornecedor_id):
         raise ExclusaoNaoPermitida(
             "Este fornecedor tem histórico de cadastros e não pode ser excluído. Inative-o."
@@ -245,6 +247,9 @@ def excluir_fornecedor(conexao: sqlite3.Connection, fornecedor_id: int) -> None:
     with conexao:
         conexao.execute("DELETE FROM conta_fornecedor WHERE fornecedor_id = ?", (fornecedor_id,))
         conexao.execute("DELETE FROM chave_pix WHERE fornecedor_id = ?", (fornecedor_id,))
+        conexao.execute(
+            "UPDATE atividade SET fornecedor_id = NULL WHERE fornecedor_id = ?", (fornecedor_id,)
+        )
         conexao.execute("DELETE FROM fornecedor WHERE id = ?", (fornecedor_id,))
 
 

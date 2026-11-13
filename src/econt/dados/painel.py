@@ -1,4 +1,4 @@
-"""Painel inicial: o resumo do que está cadastrado e o que pede atenção (RF01)."""
+"""Painel inicial: o resumo do que está cadastrado e o que pede atenção (RF01, RF31)."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from econt.dados.atividades import contar_prazos
 from econt.dados.contas import listar_contas
 from econt.dados.marcacoes import cadastros_vigentes
 from econt.dominio.dinheiro import formatar_reais
@@ -19,6 +20,8 @@ class Resumo:
     contas_entidade: int
     limites_em_liberacao: list[str] = field(default_factory=list)
     sem_cadastro: int = 0
+    atividades_atrasadas: int = 0
+    atividades_de_hoje: int = 0
 
 
 def resumir(conexao: sqlite3.Connection, agora: datetime | None = None) -> Resumo:
@@ -42,4 +45,13 @@ def resumir(conexao: sqlite3.Connection, agora: datetime | None = None) -> Resum
                     f"O limite {situacao.nome} da {conta.descricao} muda para "
                     f"{formatar_reais(pedido.valor)} em {formatar_data_hora(pedido.liberado_em)}."
                 )
-    return Resumo(len(fornecedores), contas_e_chaves, len(contas), liberacoes, sem_cadastro)
+    atrasadas, de_hoje = contar_prazos(conexao, agora.date())
+    return Resumo(
+        len(fornecedores),
+        contas_e_chaves,
+        len(contas),
+        liberacoes,
+        sem_cadastro,
+        atrasadas,
+        de_hoje,
+    )

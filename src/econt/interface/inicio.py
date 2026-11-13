@@ -1,4 +1,4 @@
-"""Painel inicial (T07): resumo do que está cadastrado, atalhos e o que pede atenção (RF01)."""
+"""Painel inicial (T07): resumo, atalhos e o que pede atenção (RF01, RF31)."""
 
 from __future__ import annotations
 
@@ -123,6 +123,26 @@ class PaginaInicio(QWidget):
                     )
                     + " em nenhuma conta da entidade. Veja na aba Cadastros de cada fornecedor.",
                     "erro",
+                )
+            )
+        if r.atividades_atrasadas:
+            avisos.append(
+                aviso(
+                    f"{r.atividades_atrasadas} "
+                    + _plural(r.atividades_atrasadas, "atividade atrasada", "atividades atrasadas")
+                    + ". Veja em Atividades.",
+                    "erro",
+                )
+            )
+        if r.atividades_de_hoje:
+            avisos.append(
+                aviso(
+                    f"{r.atividades_de_hoje} "
+                    + _plural(
+                        r.atividades_de_hoje, "atividade vence hoje", "atividades vencem hoje"
+                    )
+                    + ". Veja em Atividades.",
+                    "atencao",
                 )
             )
         avisos += [aviso(mensagem, "atencao") for mensagem in r.limites_em_liberacao]
