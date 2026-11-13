@@ -5,7 +5,14 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import datetime
 
-from PySide6.QtCore import QDateTime, QModelIndex, QSortFilterProxyModel, Qt, QTimer, Signal
+from PySide6.QtCore import (
+    QDateTime,
+    QModelIndex,
+    QSortFilterProxyModel,
+    Qt,
+    QTimer,
+    Signal,
+)
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -20,6 +27,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSizePolicy,
+    QStyledItemDelegate,
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
@@ -176,6 +184,31 @@ class Campo(CampoBase):
 
 
 TEXTO_DE_BUSCA = Qt.ItemDataRole.UserRole + 1
+LARGURA_MAXIMA_DA_LISTA = 760  # a lista aberta nunca passa disso, nem da largura da tela
+
+
+def largura_da_lista(lista: QAbstractItemView, minima: int, origem: QWidget) -> int:
+    """Largura para a lista mostrar o texto inteiro: pelo menos a da caixa, no máximo a da
+    tela (perto da borda, o Qt empurra a lista para dentro da tela)."""
+    folga = lista.verticalScrollBar().sizeHint().width() + 2 * lista.frameWidth() + 24
+    conteudo = lista.sizeHintForColumn(0) + folga
+    cabe = origem.screen().availableGeometry().width() - 16
+    return max(minima, min(conteudo, LARGURA_MAXIMA_DA_LISTA, cabe))
+
+
+class CaixaDeEscolha(QComboBox):
+    """A lista aberta fica larga o bastante para o texto inteiro (sem cortar no meio)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        # O desenhista padrão do Qt para listas de escolha ignora o espaçamento do tema.
+        self.setItemDelegate(QStyledItemDelegate(self))
+        self.view().setTextElideMode(Qt.TextElideMode.ElideRight)
+
+    def showPopup(self) -> None:  # noqa: N802 (nome do Qt)
+        lista = self.view()
+        lista.setMinimumWidth(largura_da_lista(lista, self.width(), self))
+        super().showPopup()
 
 
 class FiltroDaBusca(QSortFilterProxyModel):
@@ -212,7 +245,7 @@ class CampoEscolha(CampoBase):
     def __init__(
         self, rotulo: str, opcoes: list[tuple], ajuda: str = "", busca: bool = False
     ) -> None:
-        super().__init__(rotulo, QComboBox(), ajuda)
+        super().__init__(rotulo, CaixaDeEscolha(), ajuda)
         for chave, rotulo_opcao, *extra in opcoes:
             self.caixa.addItem(rotulo_opcao, chave)
             if extra:
@@ -232,6 +265,10 @@ class CampoEscolha(CampoBase):
             completar.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
             completar.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
             completar.setMaxVisibleItems(8)
+            completar.popup().setTextElideMode(Qt.TextElideMode.ElideRight)
+            completar.popup().setObjectName("sugestoes")
+            completar.popup().setItemDelegate(QStyledItemDelegate(completar.popup()))
+            _repolir(completar.popup())
             self.caixa.setCompleter(completar)
             completar.activated[QModelIndex].connect(self._escolher_sugestao)
             self.caixa.lineEdit().textEdited.connect(self._sugerir)
@@ -255,6 +292,13 @@ class CampoEscolha(CampoBase):
         self.filtro.definir(texto)
         completar = self.caixa.completer()
         if texto.strip() and self.filtro.rowCount():
+            # A lista de sugestões também na largura do texto, logo abaixo da caixa.
+            caixa = self.caixa.lineEdit()
+            popup = completar.popup()
+            popup.setModel(completar.completionModel())
+            # Largura mínima, e não o retângulo do complete(): o campo de texto também chama
+            # complete() a cada tecla, com a largura dele.
+            popup.setMinimumWidth(largura_da_lista(popup, self.caixa.width(), caixa))
             completar.complete()
         else:
             completar.popup().hide()
@@ -289,6 +333,15 @@ class CampoDataHora(CampoBase):
         controle.setCalendarPopup(True)
         super().__init__(rotulo, controle, ajuda)
         controle.dateTimeChanged.connect(lambda _: self.limpar_erro())
+        controle.calendarWidget().installEventFilter(self)
+
+    def eventFilter(self, objeto, evento) -> bool:  # noqa: N802 (nome do Qt)
+        """O calendário abre do tamanho que a fonte do tema pede, sem cortar os dias."""
+        if evento.type() == evento.Type.Show:
+            objeto.ensurePolished()
+            objeto.setMinimumSize(objeto.sizeHint())
+            objeto.window().adjustSize()
+        return super().eventFilter(objeto, evento)
 
     def valor(self) -> datetime:
         return self.caixa.dateTime().toPython().replace(second=0, microsecond=0)
