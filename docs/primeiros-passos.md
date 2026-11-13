@@ -34,7 +34,8 @@ A entidade é quem paga: informe a razão social e o CNPJ. O logo é opcional (P
 
 ## Usar só o teclado
 
-- **Ctrl+1** a **Ctrl+5** trocam de área.
+- **Ctrl+1** a **Ctrl+6** trocam de área.
+- No quadro de [Atividades](atividades.md), **Ctrl+setas** movem o cartão selecionado.
 - **Enter** salva formulários e diálogos; **Esc** cancela os diálogos.
 - **Tab** passa de um campo para o outro; **Espaço** marca e desmarca caixas.
 - **Ctrl+Tab** passa para a próxima aba.

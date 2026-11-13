@@ -16,6 +16,7 @@ GUIAS = [
     "consulta.md",
     "fornecedores.md",
     "entidade.md",
+    "atividades.md",
     "configuracoes.md",
     "perguntas-frequentes.md",
 ]

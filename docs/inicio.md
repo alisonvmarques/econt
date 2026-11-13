@@ -20,3 +20,9 @@ Aparece só quando há algo a resolver:
   no banco e marcar na aba **Cadastros** do fornecedor.
 - **Limite em liberação:** um pedido de alteração de limite que ainda não passou das 24 horas.
   Mostra o novo valor e quando ele passa a valer.
+- **Atividade atrasada:** quantas atividades do quadro de [Atividades](atividades.md) estão
+  com o prazo vencido, fora da coluna de conclusão.
+- **Atividade que vence hoje:** quantas têm o prazo para hoje.
+
+Os avisos das atividades somem quando a atividade vai para a coluna de conclusão, é
+arquivada ou tem o prazo mudado.
