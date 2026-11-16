@@ -6,7 +6,7 @@ Sistema desktop e offline que cuida das contas e das atividades da entidade: con
 contas dos fornecedores e em quais contas da entidade estão cadastradas antes de pagar, e
 acompanha num quadro o que o setor financeiro tem a fazer.
 
-> Versão atual: 1.0 · Versão estável.
+> Versão atual: 1.1 · Atividades.
 
 ![Consulta de um fornecedor](docs/imagens/consulta-resultado.png)
 
