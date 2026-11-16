@@ -2,7 +2,7 @@ import sqlite3
 
 import pytest
 
-from econt.dados.banco import MIGRACOES, BaseDeDados, versao_atual
+from econt.dados.banco import MIGRACOES, BaseDeDados, VersaoMaisNova, versao_atual
 from econt.dados.cofre import SenhaIncorreta
 
 SENHA = "senha-de-teste-123"
@@ -59,8 +59,10 @@ def test_dados_de_versao_mais_nova_nao_abrem(tmp_path):
     base, _ = BaseDeDados.criar(caminho, SENHA)
     base.conexao.execute("PRAGMA user_version = 99")
     base.fechar()
-    with pytest.raises(RuntimeError, match="versão mais nova"):
+    antes = caminho.read_bytes()
+    with pytest.raises(VersaoMaisNova, match="Instale a versão mais nova do ECont"):
         BaseDeDados.abrir(caminho, senha=SENHA)
+    assert caminho.read_bytes() == antes  # nada foi gravado
 
 
 def test_sqlite_tem_serialize():

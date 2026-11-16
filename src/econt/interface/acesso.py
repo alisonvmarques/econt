@@ -249,5 +249,8 @@ class TelaNovaSenha(TelaCentral):
             self.chave.mostrar_erro("Chave inválida. Confira as letras e os números.")
             self.chave.caixa.setFocus()
             return
+        except ErroDeArquivo as erro:  # por exemplo, dados de uma versão mais nova do ECont
+            self.chave.mostrar_erro(str(erro))
+            return
         base.cofre.trocar_senha(senha)
         self.senha_trocada.emit(base)

@@ -144,3 +144,20 @@ def test_chave_nao_confirmada_e_trocada_e_mostrada_de_novo(aplicacao, tmp_path):
     entrada.entrar.click()
     assert isinstance(janela.tela_atual(), TelaDadosEntidade)  # não pede a chave de novo
     janela.close()
+
+
+def test_dados_de_versao_mais_nova_explicam_o_que_fazer(aplicacao, tmp_path):
+    """Em vez do erro inesperado, a entrada diz que é preciso instalar a versão mais nova."""
+    caminho = tmp_path / "dados.econt"
+    base = BaseDeDados.criar(caminho, SENHA)[0]
+    base.conexao.execute("PRAGMA user_version = 99")
+    base.fechar()
+    janela = JanelaPrincipal(caminho)
+    tela = janela.tela_atual()
+    tela.senha.definir(SENHA)
+    tela.entrar.click()
+    assert janela.base is None
+    assert tela.erro.isVisibleTo(tela)
+    assert "versão mais nova do ECont" in tela.erro.text()
+    assert "não foram alterados" in tela.erro.text()
+    janela.close()

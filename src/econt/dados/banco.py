@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import sqlite3
 
-from econt.dados.cofre import Cofre
+from econt.dados.cofre import Cofre, ErroDeArquivo
 
 MIGRACOES: list[str] = [
     # 1 · lista de bancos (RN13)
@@ -193,6 +193,17 @@ MIGRACOES: list[str] = [
 ]
 
 
+class VersaoMaisNova(ErroDeArquivo, RuntimeError):
+    """Dados de uma versão mais nova do ECont: esta versão não abre, e não mexe em nada."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Estes dados foram gravados por uma versão mais nova do ECont, que esta versão "
+            "não consegue abrir. Instale a versão mais nova do ECont para continuar. Os dados "
+            "não foram alterados."
+        )
+
+
 def versao_atual() -> int:
     return len(MIGRACOES)
 
@@ -243,10 +254,7 @@ class BaseDeDados:
     def migrar(self) -> None:
         atual = self.versao()
         if atual > versao_atual():
-            raise RuntimeError(
-                "Estes dados foram gravados por uma versão mais nova do ECont. "
-                "Atualize o sistema para abri-los."
-            )
+            raise VersaoMaisNova()
         for numero, script in enumerate(MIGRACOES[atual:], start=atual + 1):
             with self.conexao:
                 self.conexao.executescript(script)

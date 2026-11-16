@@ -30,6 +30,8 @@ def test_lista_aberta_tem_a_largura_do_texto(aplicacao):
 
 
 def test_sugestoes_tem_a_largura_do_texto(aplicacao):
+    from econt.interface.componentes import LARGURA_MAXIMA_DA_LISTA
+
     campo = _campo(busca=True)
     campo.caixa.setCurrentIndex(-1)
     campo.caixa.setEditText("")
@@ -37,7 +39,8 @@ def test_sugestoes_tem_a_largura_do_texto(aplicacao):
     assert campo.sugestoes() == [LONGO]
     popup = campo.caixa.completer().popup()
     assert popup.minimumWidth() > campo.caixa.width()
-    assert popup.minimumWidth() >= popup.sizeHintForColumn(0)
+    # O texto inteiro, até o limite da lista (no Windows, a fonte mais larga passa dele).
+    assert popup.minimumWidth() >= min(popup.sizeHintForColumn(0), LARGURA_MAXIMA_DA_LISTA)
 
 
 def test_calendario_abre_sem_cortar_os_dias(aplicacao):
