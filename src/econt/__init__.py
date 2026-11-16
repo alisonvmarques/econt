@@ -1,3 +1,3 @@
-"""ECont: conferir as contas dos fornecedores antes de pagar."""
+"""ECont: as contas e as atividades da entidade."""
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
